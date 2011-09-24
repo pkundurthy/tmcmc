@@ -1,0 +1,4 @@
+# paramname | value      | step   | open        | printformat 
+a0	    |   -1.0      | 0.01  | True       |    0.5f
+a1	    |   12.4     | 0.02   | True        |    0.5f
+a2	    |  -4.1      | 0.04   | True        |    0.5f

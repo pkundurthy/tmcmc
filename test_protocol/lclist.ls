@@ -1,0 +1,4 @@
+# file | TT
+sc.LIGHTCURVE.XO2.T1.data | T1
+sc.LIGHTCURVE.XO2.T2.data | T2
+sc.LIGHTCURVE.XO2.T3.data | T3

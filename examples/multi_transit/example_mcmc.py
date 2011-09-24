@@ -1,0 +1,36 @@
+
+import tmcmc
+
+ObservedData = tmcmc.iomcmc.ReadMultiList('lclist.ls')
+NuisanceData = tmcmc.iomcmc.ReadDetrendFile('NUISANCE.ONOFF.data')
+ModelParams0 = tmcmc.iomcmc.ReadStartParams('STARTPARAMS.data')
+BoundParams = tmcmc.iomcmc.ReadBoundsFile('BOUNDS.data')
+
+tmcmc.mcmc.mcmc_mh_adapt(2000,'MultiTransitQuick_circular_rprs_vm',ObservedData,ModelParams0,NuisanceData,BoundParams,False,True,'MCMC_transit.test.data',True)
+
+from matplotlib import pyplot as plt
+import numpy as np
+# Check Detrending plot
+tmcmc.iomcmc.WriteLowestChisq('MCMC_transit.test.data',ModelParams0,'LOWESTCHISQPARAMS.data',True)
+ModelParams1 = tmcmc.iomcmc.ReadStartParams('LOWESTCHISQPARAMS.data')
+ModelData0 = tmcmc.myfunc.MultiTransitQuick_circular_rprs_vm(ModelParams0,ObservedData)
+ModelData1 = tmcmc.myfunc.MultiTransitQuick_circular_rprs_vm(ModelParams1,ObservedData)
+
+DetrendedData = tmcmc.mcmc.DetrendData(ObservedData,ModelData1,NuisanceData,'',False)
+x = ObservedData['T1']['x']
+yobs = ObservedData['T1']['y']
+ydt = DetrendedData['T1']['y']
+yerr = ObservedData['T1']['yerr']
+ymod0 = ModelData0['T1']['y']
+ymod1 = ModelData1['T1']['y']
+plt.plot(x,yobs,'b.')
+plt.plot(x,ymod1,'k-')
+plt.plot(x,ymod0,'y-')
+plt.errorbar(x,yobs,yerr=yerr,fmt=None,ecolor='b')
+plt.plot(x,np.array(ydt)-0.05,'g.')
+plt.plot(x,np.array(ymod1)-0.05,'k-')
+plt.plot(x,np.array(ymod0)-0.05,'y-')
+plt.errorbar(x,np.array(ydt)-0.05,yerr=yerr,fmt=None,ecolor='b')
+plt.savefig('test_transitMCMC.png', dpi=None, facecolor='w', edgecolor='w', \
+orientation='landscape', papertype=None, format=None, transparent=False, bbox_inches=None, pad_inches=0.1)
+

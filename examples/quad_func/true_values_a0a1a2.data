@@ -1,0 +1,7 @@
+a0 = -12.3
+a1 = -8.12
+a2 =  5.2
+noise = 10*random_normal
+yobs = ytrue + noise
+yerr = random_uniform, between 10 and 20
+ 

@@ -1,0 +1,4 @@
+# file | Transit Tag
+LIGHTCURVE.GJ1214.T1.data | T1
+LIGHTCURVE.GJ1214.T2.data | T2
+LIGHTCURVE.GJ1214.T3.data | T3

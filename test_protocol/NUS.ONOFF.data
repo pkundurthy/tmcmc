@@ -1,0 +1,4 @@
+#file  | night | airmass | x1 | y1 | x2 | y2 | msky1 | msky2 | gsky | a0 | sD1 | sD2 | sF1 | sF2 | telfocus | telrot |  time | diff_sky | dist | sky_ratio1 | sky_ratio2
+sc.NUISANCE.XO2.T1.data  | T1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 1 |  0 | 1 | 1 | 1 | 1
+sc.NUISANCE.XO2.T2.data  | T2 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 1 |  0 | 1 | 1 | 1 | 1
+sc.NUISANCE.XO2.T3.data  | T3 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 0 | 1 | 1 | 1 | 1 | 1 | 1 |  0 | 1 | 1 | 1 | 1

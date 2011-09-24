@@ -1,0 +1,4 @@
+# Parname | value | step | open | printformat 
+a1  |  -8.17410 | 0.02000 | True | 0.5f
+a0  |  -12.17507 | 0.01000 | True | 0.5f
+a2  |  5.22332 | 0.04000 | True | 0.5f
