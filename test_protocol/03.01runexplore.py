@@ -1,5 +1,6 @@
 
 import tmcmc
+import os
 
 def setALLFalse(ModelParams):
     """
@@ -32,7 +33,7 @@ for par in TrueParams:
     ModelParams[par]['open'] = True
     tmcmc.mcmc.mcmc_mh_adapt(NexploreSteps,func,\
     ObservedData,ModelParams,NuisanceData,\
-    BoundParams,False,False,\
+    BoundParams,False,True,\
     'EXPLORE.TEST.'+par+'.mcmc',\
     True)
 

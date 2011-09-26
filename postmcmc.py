@@ -1,4 +1,5 @@
 
+import numpy as np
 
 def getNparams(hdrkeys):
     """ reports the number of model parameters in the MCMC file """

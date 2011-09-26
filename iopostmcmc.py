@@ -1,4 +1,8 @@
 
+from iomcmc import ReadHeaderMCMC, ReadMCMCline
+from iomcmc import PrintModelParams, ReadStartParams
+from postmcmc import isNonParam, getNparams
+import numpy as np
 
 def readMCMChdr(filename):
     """ reads the header line for an mcmc file """
@@ -7,7 +11,7 @@ def readMCMChdr(filename):
     mcmcFile = mcmcFile.readlines()
     for line in mcmcFile:
         if line.startswith('#'):
-            hdrkeys = mcmc.ReadHeaderMCMC(line)
+            hdrkeys = ReadHeaderMCMC(line)
             for key in hdrkeys:
                 hdrkeys[key] = hdrkeys[key].strip('\'')
 
@@ -32,7 +36,7 @@ def readMCMC(filename):
     mcmcFile = mcmcFile.readlines()
     for line in mcmcFile:
         if not line.startswith('#'):
-            data_line = mcmc.ReadMCMCline(line,hdrkeys)
+            data_line = ReadMCMCline(line,hdrkeys)
             for key in data_line.keys():
                 out_data[key].append(data_line[key])
 
@@ -70,7 +74,7 @@ def read1parMCMC(filename,parname):
     mcmcFile = mcmcFile.readlines()
     for line in mcmcFile:
         if not line.startswith('#'):
-            data_line = mcmc.ReadMCMCline(line,hdrkeys)
+            data_line = ReadMCMCline(line,hdrkeys)
             out_data[parname].append(data_line[parname])
             out_data['istep'].append(data_line['istep'])
             out_data['chi1'].append(data_line['chi1'])
@@ -94,7 +98,7 @@ def cropMCMC(mcmcfile,outfile,cropperc):
         if line.startswith('#'):
             print >> outfileObject, line.strip('\n')
         if not line.startswith('#'):
-            data_line = mcmc.ReadMCMCline(line,hdrkeys)
+            data_line = ReadMCMCline(line,hdrkeys)
             if Nparams == 1:
                 if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
                     print 'printing ',format(data_line['istep'],'n')
@@ -117,7 +121,7 @@ def makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile
     ListFiles = open(ListOfChains,'r')
     ListFiles = ListFiles.readlines()
     
-    ModelParams = mcmc.ReadStartParams(SampleParamFile)
+    ModelParams = ReadStartParams(SampleParamFile)
     step = {}
     for file in ListFiles:
         data = readMCMC(file.strip('\n'))
@@ -138,13 +142,13 @@ def makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile
                 ModelParams[par]['step'] = ModelParams[par]['step']*step[par]['frac']
                 ModelParams[par]['open'] = True
 
-    mcmc.PrintModelParams(ModelParams,OutputParamFile)
+    PrintModelParams(ModelParams,OutputParamFile)
 
 def printErrors(MCMCfile,BestfitFile,OutputFile):
     """ Gets data out from the MCMC data file and the BESTFIT parameters file and prints uncertainties """
 
     mcmcData = readMCMC(MCMCfile)
-    BestFitParams = mcmc.ReadStartParams(BestfitFile)
+    BestFitParams = ReadStartParams(BestfitFile)
     
     erf15 = ((1e0 - scipy.special.erf(1e0/np.sqrt(2e0)))/2e0)
     erf84 = (1e0 - erf15)
