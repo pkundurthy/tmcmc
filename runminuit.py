@@ -1,9 +1,11 @@
-
+import minuit2
+from mcmc import ApplyBounds, DetrendData
+from iomcmc import PrintModelParams
+import numpy as np
+import cPickle as pickle
 
 def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
-    """
-    Designed to run Minuit on tmcmc format Data dictionaries
-    """
+    """ Designed to run Minuit on tmcmc format Data dictionaries """
     
     OpenParNames = []
     for key in ModelParams.keys():
@@ -37,6 +39,7 @@ def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tol
         m.values[key] = ModelParams[key]['value']
         m.errors[key] = ModelParams[key]['step']
     m.migrad()
+    print 'edm = ',m.edm, '(edm ~1 signifies convergence, edm > 1e2 probably too high)'
     
     for key in m.values.keys():
         ModelParams[key]['value'] = m.values[key]
@@ -65,7 +68,7 @@ def f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams)
     else:
         chi2 = 1e308
         
-    print chi2
+    #print chi2
     return chi2
 
 class var_code:

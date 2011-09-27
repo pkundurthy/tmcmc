@@ -1,19 +1,46 @@
 
 from iomcmc import ReadHeaderMCMC, ReadMCMCline
 from iomcmc import PrintModelParams, ReadStartParams
-from postmcmc import isNonParam, getNparams
 import numpy as np
+import scipy
+import sys
+
+def isNonParam(key):
+    """
+        checks if a given MCMC data key is not a model parameter.
+    """
+    
+    if key == 'acr' or key == 'frac' or key == 'chi1'\
+    or key == 'chi2' or key == 'istep':
+        return True
+    else:
+        return False
+
+def getNparams(hdrkeys):
+    """ reports the number of model parameters in the MCMC file """
+    
+    Nparam = 0
+    for key in hdrkeys.keys():
+        if isNonParam(key):
+            pass
+        else:
+            Nparam += 1
+            
+    return Nparam
 
 def readMCMChdr(filename):
     """ reads the header line for an mcmc file """
     
     mcmcFile = open(filename,'r')
     mcmcFile = mcmcFile.readlines()
-    for line in mcmcFile:
-        if line.startswith('#'):
-            hdrkeys = ReadHeaderMCMC(line)
-            for key in hdrkeys:
-                hdrkeys[key] = hdrkeys[key].strip('\'')
+    
+    if mcmcFile[0].startswith('#'):
+        hdrkeys = ReadHeaderMCMC(mcmcFile[0])
+        for key in hdrkeys:
+            hdrkeys[key] = hdrkeys[key].strip('\'')
+    else:
+        print 'Error: First line in %s is not the header' % filename
+        sys.exit(1)
 
     return hdrkeys
 

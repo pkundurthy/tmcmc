@@ -1,0 +1,14 @@
+# Parname | value | step | open | printformat 
+f0  |  1.0000000 | 0.0000000 | False | .7f
+D.T1.T2.T3  |  0.0131000 | 0.0001906 | True | .7f
+T0.T3  |  55625.710000000 | 0.000578010 | True | .9f
+T0.T2  |  55591.705000000 | 0.000384737 | True | .9f
+T0.T1  |  55494.919000000 | 0.000537802 | True | .9f
+NT.T1  |  515 | 0 | False | n
+NT.T3  |  656 | 0 | False | n
+NT.T2  |  552 | 0 | False | n
+v1.T1.T2.T3  |  0.6980 | 0.0000 | False | .4f
+v2.T1.T2.T3  |  0.3524 | 0.0000 | False | .4f
+tG  |  0.0160200 | 0.0006507 | True | .7f
+tT  |  0.0980000 | 0.0005578 | True | .7f
+RefFilt  |  nan | 0.0 | False | T2

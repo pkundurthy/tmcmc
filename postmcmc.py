@@ -1,21 +1,13 @@
 
 import numpy as np
+import scipy.stats
+from iopostmcmc import readMCMChdr, read1parMCMC
+from iopostmcmc import isNonParam
+from matplotlib import pyplot as plt
+import sys
 
-def getNparams(hdrkeys):
-    """ reports the number of model parameters in the MCMC file """
-    
-    Nparam = 0
-    for key in hdrkeys.keys():
-        if isNonParam(key):
-            pass
-        else:
-            Nparam += 1
-            
-    return Nparam
-
-def covcorStats(data, FileTag):
-    """
-        Given MCMC parameters, this function computes
+def covcorStats(File, FileTag):
+    """ Given MCMC parameters, this function computes
         the covariance between parameters, the pearson's correlation 
         coefficient and spearman's rank correlation.
     """
@@ -27,22 +19,29 @@ def covcorStats(data, FileTag):
     #print >> OutFileObject, '#  par1   |  par2   |  cov   | pearson\'s r  | spearman\'s r '
     topline = '#'
     passCount = 0
-    for key in data.keys():
-        if isNonParam(key):
+    hdrKeys1 = readMCMChdr(File)
+    hdrKeys2 = readMCMChdr(File)
+    
+    for i1 in hdrKeys1.keys():
+        key1 = hdrKeys1[i1]
+        if isNonParam(key1):
             pass
         else:
             covline = ''
             pcorline = ''
             scorline = ''
-            for key2 in data.keys():
+            for i2 in hdrKeys2.keys():
+                key2 = hdrKeys2[i2]
                 if isNonParam(key2):
                     pass
                 else:
+                    d1 = read1parMCMC(File,key1)
+                    d2 = read1parMCMC(File,key2)
                     if passCount == 0: topline = topline+5*' '+key2
-                    cov = np.cov(data[key],data[key2])
-                    pcor = scipy.stats.pearsonr(np.array(data[key]),np.array(data[key2]))
-                    scor = scipy.stats.spearmanr(np.array(data[key]),np.array(data[key2]))
-                    print key, key2
+                    cov = np.cov(d1[key1],d2[key2])
+                    pcor = scipy.stats.pearsonr(np.array(d1[key1]),np.array(d2[key2]))
+                    scor = scipy.stats.spearmanr(np.array(d1[key1]),np.array(d2[key2]))
+                    print key1, key2
                     covline = covline+' '+format(cov[0][1],'+.2e')
                     pcorline = pcorline+' '+format(pcor[0],'+.2e')
                     scorline = scorline+' '+format(scor[0],'+.2e')
@@ -53,19 +52,21 @@ def covcorStats(data, FileTag):
                 print >> OutFileObject_PR, '#'+88*'-'
                 print >> OutFileObject_SR, topline
                 print >> OutFileObject_SR, '#'+88*'-'
-            lenkey = len(key)
+            lenkey = len(key1)
             if lenkey < 10:
                 fac = 10-lenkey
-            print >> OutFileObject_COV, key+fac*' '+' | '+covline
-            print >> OutFileObject_PR, key+fac*' '+' | '+pcorline
-            print >> OutFileObject_SR, key+fac*' '+' | '+scorline
+            else:
+                fac = 10
+            print >> OutFileObject_COV, key1+fac*' '+' | '+covline
+            print >> OutFileObject_PR, key1+fac*' '+' | '+pcorline
+            print >> OutFileObject_SR, key1+fac*' '+' | '+scorline
             passCount += 1
     
     OutFileObject_COV.close()
     OutFileObject_PR.close()
     OutFileObject_SR.close()
     
-def plotTrace(data1, data2, **keywords):
+def plotTrace(File1,File2, **keywords):
     """ Plot the trace of a single parameter between two chains """
     
     #ftag = ''
@@ -76,16 +77,21 @@ def plotTrace(data1, data2, **keywords):
             ftag = keywords[keyw]
         if keyw == 'Silent':
             silent = keywords[keyw]
+            
+    hdrKeys = readMCMChdr(File1)
 
-    for key in data1.keys():
+    for i in hdrKeys.keys():
+        key = hdrKeys[i]
         if isNonParam(key):
             pass
         else:
             try:
-                i1 = data1['istep']
-                i2 = data2['istep']
-                x1 = data1[key]
-                x2 = data2[key]
+                d1 = read1parMCMC(File1,key)
+                d2 = read1parMCMC(File2,key)
+                i1 = d1['istep']
+                i2 = d2['istep']
+                x1 = d1[key]
+                x2 = d2[key]
                 pp = plt.plot(i1,x1,'bo')
                 plt.setp(pp,'markersize',8)
                 plt.setp(pp,'markerfacecolor','k')
@@ -97,7 +103,7 @@ def plotTrace(data1, data2, **keywords):
                 print 'key not found'
                 raise
 
-def autocorMCMC(data, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
+def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
     """ Compute the auto-correlation of parameters in a chain """
     
     #ftag = ''
@@ -109,21 +115,19 @@ def autocorMCMC(data, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
         if keyw == 'Silent':
             silent = keywords[keyw]
     
-    ChainLength = len(data['istep'])
-    #fnlinslope0 = lambda p, t: p[1]*t + p[0]
-    #fnlinslope0 = lambda p, t: p[0]*np.exp(p[1]*t)
-    #errfunc = lambda par, xdata, ydata: (fnlinslope0(par,xdata)-ydata)**2
-
     chain_stats = {}
     OutFileObject = open(OutStatFile,'w')
-    
-    for key in data.keys():
+    hdrKeys = readMCMChdr(File)
+    for i in hdrKeys.keys():
+        key = hdrKeys[i]
         # empty list for autocorrelation data
         x = []
         # skip the non-parameter data
         if isNonParam(key):
             pass
         else:
+            data = read1parMCMC(File,key)
+            ChainLength = len(data['istep'])
             if not silent: print 'Par '+key
             for i in range(ChainLength):
                 x.append(data[key][i])
@@ -135,12 +139,16 @@ def autocorMCMC(data, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
             # starting auto-correlation, set to be much higher than tolerance
             cval = 1e0
             j = 0
-            while cval > lowtol or j < jmax:
-                irange = np.arange(len(x1)-j)
-                jrange = irange + j
-                x1i_x1ipj = x1[irange]*x1[jrange]
-                x1i_sq = (x1[irange]*x1[irange])
-                x1i = (x1[irange])
+            szx1 = len(x1)
+            while cval > lowtol and j < jmax:
+                sli0 = 0 
+                sli1 = szx1-j-1
+                slj0 = j
+                slj1 = szx1-1
+                next2 = x1[sli0:sli1]
+                x1i_x1ipj = x1[sli0:sli1]*x1[slj0:slj1]
+                x1i_sq = (x1[sli0:sli1]*x1[sli0:sli1])
+                x1i = (x1[sli0:sli1])
                 val = (np.mean(x1i_x1ipj) - (np.mean(x1i))**2)/\
                 (np.mean(x1i_sq) - (np.mean(x1i))**2)
                 cj.append(val)
@@ -150,10 +158,10 @@ def autocorMCMC(data, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
             cj = np.array(cj)
             jarr = np.array(jarr)
             corlen_index = np.where( np.abs(cj-0.5e0) == np.min( np.abs(cj-0.5e0)) )[0]
-            #print corlen_index
             corlen = jarr[corlen_index[0]]
             efflen = long(float(ChainLength)/float(corlen))
             if mkPlotsFlag:
+                print 'plotting acor', key
                 plt.plot(jarr,cj,'b.')
                 plt.plot([corlen,corlen],[0,1],'k--')
                 plt.plot([0,max(jarr)],[0.5,0.5],'k--')
@@ -180,14 +188,3 @@ def autocorMCMC(data, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
     print >> OutFileObject, '## ALL ## Corr Length = '+format(max(clen),'d')
     print >> OutFileObject, '## ALL ## Eff Length = '+format(min(elen),'d')
     OutFileObject.close()
-
-def isNonParam(key):
-    """
-        checks if a given MCMC data key is not a model parameter.
-    """
-    
-    if key == 'acr' or key == 'frac' or key == 'chi1'\
-    or key == 'chi2' or key == 'istep':
-        return True
-    else:
-        return False
