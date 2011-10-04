@@ -39,7 +39,7 @@ def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tol
         m.values[key] = ModelParams[key]['value']
         m.errors[key] = ModelParams[key]['step']
     m.migrad()
-    print 'edm = ',m.edm, '(edm ~1 signifies convergence, edm > 1e2 probably too high)'
+    print 'edm = ',m.edm, '(edm ~1 signifies convergence, edm > 1e2 is probably too high)'
     
     for key in m.values.keys():
         ModelParams[key]['value'] = m.values[key]

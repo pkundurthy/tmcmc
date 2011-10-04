@@ -1,7 +1,7 @@
 
 from tmcmc.misc import String2IntFloat
 from tmcmc.misc import String2Bool
-import os
+import os, sys
 
 def MakeModelParsContinue(par0,par1,ModelPars):
     """ Makes a ModelParam dictionary from lines of an incompelte MCMC file."""
@@ -328,11 +328,13 @@ def CheckContinue(file,ModelPars):
     FileObject = open(file,'r')
     FileObjectLines = FileObject.readlines()
     
-    OutFile = open('COPY.'+file,'w')
-    if checkFileExists('CONTINUE.'+file):
-        OutFileContinueStep = open('CONTINUE.'+file,'a')
+    CopyFile = file+'.COPY'
+    ContinueFile = file+'.CONTINUE'
+    OutFile = open(CopyFile,'w')
+    if checkFileExists(ContinueFile):
+        OutFileContinueStep = open(ContinueFile,'a')
     else:
-        OutFileContinueStep = open('CONTINUE.'+file,'w')
+        OutFileContinueStep = open(ContinueFile,'w')
 
     ReadLines = []
 
@@ -353,19 +355,19 @@ def CheckContinue(file,ModelPars):
     acr = par1['acr']
     diff_check = 0
     iLine = 0
-    while diff_check == 0:
+    
+    while abs(diff_check) <= 1e-32:
         line0 = ReadLines[-1-iLine]
         par0 = ReadMCMCline(line0,ParNames)
         for key in ModelPars.keys():
             if ModelPars[key]['open']:
                 diff_check += par0[key]-par1[key]
         iLine += 1
-
     print >> OutFileContinueStep, ' Continue @ istep = ', istep
 
     OutFile.close()
     OutFileContinueStep.close()
-    os.system('mv -v %s %s' % ('COPY.'+file,file))
+    os.system('mv -v %s %s' % (CopyFile,file))
     newModelPars = MakeModelParsContinue(par0,par1,ModelPars)
     return newModelPars, istep, frac, acr
 

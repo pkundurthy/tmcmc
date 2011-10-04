@@ -44,6 +44,17 @@ def readMCMChdr(filename):
 
     return hdrkeys
 
+def getPars(filename):
+    """ return list of parameters only """
+    
+    HDRs = readMCMChdr(filename)
+    ParList = []
+    for key in HDRs.keys():
+        if not isNonParam(HDRs[key]):
+            ParList.append(HDRs[key])
+    
+    return ParList
+
 def readMCMC(filename):
     """
         Reads data from an MCMC file and store it into a dictionary.
@@ -68,7 +79,7 @@ def readMCMC(filename):
                 out_data[key].append(data_line[key])
 
     return out_data
-
+   
 def read1parMCMC(filename,parname):
     """
         Reads a single column of data from an MCMC file 

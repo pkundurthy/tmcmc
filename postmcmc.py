@@ -128,6 +128,8 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
         else:
             data = read1parMCMC(File,key)
             ChainLength = len(data['istep'])
+            print np.shape(data['istep'])
+            sys.exit()
             if not silent: print 'Par '+key
             for i in range(ChainLength):
                 x.append(data[key][i])
