@@ -163,6 +163,7 @@ def mcmc_mh_adapt(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,Boun
     ModelParams1 = ModelParams.copy()
     chisq1 = chisq(DetrendedData1['all']['y'],DetrendedData1['all']['yerr'],ModelData1['all']['y'])
     Nsteps = float(Nsteps)
+    print istep, Nsteps
 
     while istep < Nsteps:
         if istep > 0: acr = float(selected_all_count)/float(istep)

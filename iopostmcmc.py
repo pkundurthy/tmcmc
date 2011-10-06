@@ -5,6 +5,80 @@ import numpy as np
 import scipy
 import sys
 
+def readStatHeaders(FileName):
+    """
+        read the column and row parameter names from stat file
+    """
+    
+    fileObj = open(FileName,'r')
+    fileObj = fileObj.readlines()
+    
+    fileObj[0].strip('#')
+    col = map(str,fileObj[0].strip('#').split())
+    print col
+    row = []
+    
+    for line in fileObj:
+        if not line.startswith('#'):
+            tag = map(str,line.split('|'))
+            row.append(tag[0].strip())
+
+    return col, row
+            
+def readStatsFile(FileName):
+    """
+    
+    """
+    
+    ColN, RowN = readStatHeaders(FileName)
+    fileObj = open(FileName,'r')
+    fileObj = fileObj.readlines()
+    
+    i = 0
+    Dict = {}
+    for line in fileObj:
+        if not line.startswith('#')
+            Fsplit = map(str, line.split('|'))
+            Dsplit = map(float, Fsplit[1].split())
+            for j in range(len(Dsplit)):
+                Dict[ColN[i]] = {'id':i,RowN[j]:{'id':j,'value':Dsplit[j]}}ss
+            i += 1
+    
+    return Dict
+    
+
+def readALLStats(**kwargs):
+    """
+        read data from stats files
+    """
+
+    fileList = {}
+    if len(kwargs) > 0:
+        for key in kwargs:
+            if key.lower().startswith('cov'):
+                fileList['cov'] = kwargs[key]
+            elif key.lower().startswith('spear'):
+                fileList['spear'] = kwargs[key]
+            elif key.lower().startswith('pear'):
+                fileList['pear'] = kwargs[key]
+            else:
+                print 'No file identified for ', key
+    else:
+        print 'No keywords supplied '
+
+    Stats = {}
+    for fileKey in fileList.keys():
+        if fileKey == 'cov':
+            Stats['cov'] = readStatsFile(fileList[fileKey])
+        elif fileKey == 'spear':
+            Stats['spear'] = readStatsFile(fileList[fileKey])
+        elif fileKey == 'pear':
+            Stats['pear'] = readStatsFile(fileList[fileKey])
+        else:
+            pass
+    
+    return Stats
+
 def isNonParam(key):
     """
         checks if a given MCMC data key is not a model parameter.

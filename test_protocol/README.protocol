@@ -1,0 +1,42 @@
+1. Data Preparation - To convert photometry datafiles into MCMC ready files
+    1.1 use tmcmc.iobinning.WriteLightCurveFile(OutFileName,infile,ITime,ETime)
+        e.g. script: 01.01dataprep.py
+    1.2 use tmcmc.iobinning.WriteNuisanceFile(OutFileName,infile)
+        e.g. script: 01.02scalefactors.py
+    where 'infile' is the photometry datafile, ITime and ETime are rough estimates 
+    of ingress and ergress time.
+
+2. MCMC Preparation (These will need to be done mannually)
+    2.1 Make lightcurve list file
+    2.2 Make Nuisance ON/OFF Flag file
+    2.3 Make Startparam file
+    2.4 Make Bounds data file
+    (test the results by plotting the data and model)
+    e.g. script: 02testdata.py
+
+3.Run Step Exploration chains
+    3.1 run Exploration chains
+        e.g. script: 03.01runexplore.py
+    3.2 post Exploration
+        e.g. script: 03.02postexplore.py
+
+4. MCMC and Post MCMC
+    4.1 run MCMC
+        e.g. script: 04.01runmcmc.py
+    4.2 cropping
+        e.g. script: 04.02cropping.py
+    4.3 auto-correlation, covcor
+        e.g. script: 04.03autocorr.py
+    4.4 get lowest chisq & print errors
+        e.g. script: 04.04lowchisq.py
+    4.5 runMinuit & print errors
+        e.g. script: 04.05runminuit.py
+    
+4.6 Run Alternate MCMC and use plotTrace to make the Trace check (optional)
+    To make the Trace check, change the starting points and run an alternate chain
+
+5. Derived Parameters
+    (Work in progress)
+
+6. Plot MCMC
+    (see test_plotting/ folder)

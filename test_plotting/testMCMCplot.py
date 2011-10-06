@@ -5,8 +5,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
-#fileMCMC = 'test1.mcmc'
-fileMCMC = 'MCMC4plot.mcmc'
+fileMCMC = 'test1.mcmc'
+#fileMCMC = 'MCMC4plot.mcmc'
 
 parList = tmcmc.iopostmcmc.getPars(fileMCMC)
 #print parList
