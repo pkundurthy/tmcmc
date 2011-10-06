@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
-fileMCMC = 'test1.mcmc'
+#fileMCMC = 'test1.mcmc'
 #fileMCMC = 'MCMC4plot.mcmc'
 
 parList = tmcmc.iopostmcmc.getPars(fileMCMC)
@@ -39,26 +39,26 @@ def checkFormat(data,parName):
             if j > 0:
                 TT += tmcmc.plotmcmc.returnTsub(msplit[j]).strip('$')+' '
         Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-            'minuit':{'data':[-9e9,par2[parName]['value']],\
-            'err':[0,par2[parName]['step']]} }
+                 'minuit':{'data':[-9e9,par2[parName]['value']],\
+                 'err':[0,par2[parName]['step']]} }
         parSym = '$'+msplit[0]+'_{(%s)}$' % TT
         AxFormat = FormatStrFormatter('%.4f')
     elif parName == 'tG':
         Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-        'minuit':{'data':[-9e9,par2[parName]['value']],\
-        'err':[0,par2[parName]['step']]} }
+                 'minuit':{'data':[-9e9,par2[parName]['value']],\
+                 'err':[0,par2[parName]['step']]} }
         parSym = r'$\tau_{G}$'
         AxFormat = FormatStrFormatter('%.4f')
     elif parName == 'tT':
         Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-        'minuit':{'data':[-9e9,par2[parName]['value']],\
-        'err':[0,par2[parName]['step']]} }
+                 'minuit':{'data':[-9e9,par2[parName]['value']],\
+                 'err':[0,par2[parName]['step']]} }
         parSym = r'$\tau_{T}$'
         AxFormat = FormatStrFormatter('%.4f')
     else:
         Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-        'minuit':{'data':[-9e9,par2[parName]['value']],\
-        'err':[0,par2[parName]['step']]} }
+                 'minuit':{'data':[-9e9,par2[parName]['value']],\
+                 'err':[0,par2[parName]['step']]} }
         parSym = parName
         AxFormat = None
 
@@ -66,7 +66,6 @@ def checkFormat(data,parName):
 
 Stats = tmcmc.iopostmcmc.readALLStats(cov='COV.stat',\
 spear='SPEAR.stat',pear='PEAR.stat')
-print Stats['spear'].keys()
 #print parList
 for iy in range(Npar):
     for ix in range(Npar):
@@ -92,21 +91,25 @@ for iy in range(Npar):
             #plt.text(cx,cy,str(iplot))
             #yticks = tuple(np.linspace(yrg[0],yrg[1],nyticks))
             #xticks = tuple(np.linspace(xrg[0],xrg[1],nxticks))
-            ypos = (0.5*yrg[1]) - np.linspace(0,15,3)
-            xpos = np.zeros(3)+(0.98*xrg[1])
-            print xpos, ypos, yrg[1]
-            cov = format(Stats['cov'][parName1][parName2]['value'],'0.2f')
+            xrg0 = xrg[0]
+            yrg0 = yrg[0]
+            xrg1 = 1.10*(xrg[1]-xrg[0])+xrg[0]
+            yrg1 = 1.10*(yrg[1]-yrg[0])+yrg[0]
+            xpos = np.zeros(3)+(0.80*(xrg1-xrg0) + xrg0)
+            ypos = np.linspace(0.80,0.90,3)*(yrg1-yrg0) + yrg0
+            cov = r'$|\sigma_{(x,y)}| = $'+format(abs(Stats['cov'][parName1][parName2]['value']),'0.2f')
             #except:cov = format(Stats['cov'][parName2][parName1]['value'],'0.2f')
-            spe = format(Stats['spear'][parName1][parName2]['value'],'0.2f')
+            spe = r'$|\rho| = $'+format(abs(Stats['spear'][parName1][parName2]['value']),'0.2f')
             #except: spe = format(Stats['spear'][parName2][parName1]['value'],'0.2f')
-            pea = format(Stats['pear'][parName1][parName2]['value'],'0.2f')
+            pea = r'$|r| = $'+format(abs(Stats['pear'][parName1][parName2]['value']),'0.2f')
             #except: pea = format(Stats['pear'][parName2][parName1]['value'],'0.2f')
-            yticks = tuple([0.75*yrg[0]+0.25*yrg[1],0.25*yrg[0]+0.75*yrg[1]])
-            xticks = tuple([0.75*xrg[0]+0.25*xrg[1],0.25*xrg[0]+0.75*xrg[1]])
+            yticks = tuple([0.75*yrg0+0.25*yrg1,0.25*yrg0+0.75*yrg1])
+            xticks = tuple([0.75*xrg0+0.25*xrg1,0.25*xrg0+0.75*xrg1])
             plt.setp(plt.gca(), yticks=yticks,xticks=xticks)
             #supress xtick labels for plots not at bottom
-            plt.xlim([xrg[0],xrg[1]])
-            plt.ylim([yrg[0],yrg[1]])
+
+            plt.xlim([xrg0,xrg1])
+            plt.ylim([yrg0,yrg1])
             #print iplot, xrg, yrg
             if iy != Npar-1:
                 plt.setp(plt.gca(), xticklabels=[])
@@ -138,4 +141,3 @@ for iy in range(Npar):
             #print i
 
 plt.show()
-        
