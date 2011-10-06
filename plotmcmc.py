@@ -6,6 +6,15 @@ import scipy.ndimage
 from matplotlib import pyplot as plt
 import matplotlib
 
+def returnTsub(TSTAMP):
+    
+    if TSTAMP.startswith('T'):
+        Tnum = TSTAMP.strip('T').strip('0.').strip('T')
+        Tsub = '$T_{%s}$' % Tnum
+    else:
+        Tsub = 'Wrong'
+        
+    return Tsub
 
 def rangeMidpoints(x):
     """         """

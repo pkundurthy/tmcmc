@@ -18,17 +18,9 @@ nxticks = 2
 
 par1 = tmcmc.iomcmc.ReadStartParams('FIT1.par')
 par2 = tmcmc.iomcmc.ReadStartParams('FIT2.par')
-
-def returnTsub(TSTAMP):
-    
-    if TSTAMP.startswith('T'):
-        Tnum = TSTAMP.strip('T').strip('0.').strip('T')
-        Tsub = '$T_{%s}$' % Tnum
-    else:
-        Tsub = 'Wrong'
+Stats = tmcmc.iopostmcmc.readALLStats(cov='COV.stat',\
+        spear='SPEAR.stat',pear='PEAR.stat')
         
-    return Tsub
-
 def checkFormat(data,parName):
     
     if parName.startswith('T0'):
@@ -38,14 +30,14 @@ def checkFormat(data,parName):
         Odata = {'lowchi':{'data':[-9e9,0]},\
                   'minuit':{'data':[-9e9,p2d],\
                   'err':[0,par2[parName]['step']*86400e0]} }
-        parSym = '$T_{mid}$ - '+returnTsub(parName)
+        parSym = '$T_{mid}$ - '+tmcmc.plotmcmc.returnTsub(parName)
         AxFormat = FormatStrFormatter('%.3f')
     elif parName.startswith('D'):
         msplit = map(str,parName.split('.'))
         TT = ''
         for j in range(len(msplit)):
             if j > 0:
-                TT += returnTsub(msplit[j]).strip('$')+' '
+                TT += tmcmc.plotmcmc.returnTsub(msplit[j]).strip('$')+' '
         Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
             'minuit':{'data':[-9e9,par2[parName]['value']],\
             'err':[0,par2[parName]['step']]} }
@@ -72,6 +64,9 @@ def checkFormat(data,parName):
 
     return data, parSym, AxFormat, Odata
 
+Stats = tmcmc.iopostmcmc.readALLStats(cov='COV.stat',\
+spear='SPEAR.stat',pear='PEAR.stat')
+print Stats['spear'].keys()
 #print parList
 for iy in range(Npar):
     for ix in range(Npar):
@@ -97,6 +92,15 @@ for iy in range(Npar):
             #plt.text(cx,cy,str(iplot))
             #yticks = tuple(np.linspace(yrg[0],yrg[1],nyticks))
             #xticks = tuple(np.linspace(xrg[0],xrg[1],nxticks))
+            ypos = (0.5*yrg[1]) - np.linspace(0,15,3)
+            xpos = np.zeros(3)+(0.98*xrg[1])
+            print xpos, ypos, yrg[1]
+            cov = format(Stats['cov'][parName1][parName2]['value'],'0.2f')
+            #except:cov = format(Stats['cov'][parName2][parName1]['value'],'0.2f')
+            spe = format(Stats['spear'][parName1][parName2]['value'],'0.2f')
+            #except: spe = format(Stats['spear'][parName2][parName1]['value'],'0.2f')
+            pea = format(Stats['pear'][parName1][parName2]['value'],'0.2f')
+            #except: pea = format(Stats['pear'][parName2][parName1]['value'],'0.2f')
             yticks = tuple([0.75*yrg[0]+0.25*yrg[1],0.25*yrg[0]+0.75*yrg[1]])
             xticks = tuple([0.75*xrg[0]+0.25*xrg[1],0.25*xrg[0]+0.75*xrg[1]])
             plt.setp(plt.gca(), yticks=yticks,xticks=xticks)
@@ -123,8 +127,12 @@ for iy in range(Npar):
                 plt.ylabel(parSym2, fontsize=16)
                 if axF2 != None:
                     plt.setp(plt.gca().yaxis.set_major_formatter(axF2))
+            plt.text(xpos[0],ypos[0],cov)
+            plt.text(xpos[1],ypos[1],spe)
+            plt.text(xpos[2],ypos[2],pea)
             plt.subplots_adjust(hspace=0)
             plt.subplots_adjust(wspace=0)
+            
         if iy != 0 and ix != Npar-1:
             iplot += 1
             #print i

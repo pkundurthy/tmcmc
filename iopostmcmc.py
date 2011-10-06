@@ -15,7 +15,6 @@ def readStatHeaders(FileName):
     
     fileObj[0].strip('#')
     col = map(str,fileObj[0].strip('#').split())
-    print col
     row = []
     
     for line in fileObj:
@@ -37,11 +36,14 @@ def readStatsFile(FileName):
     i = 0
     Dict = {}
     for line in fileObj:
-        if not line.startswith('#')
+        if not line.startswith('#'):
             Fsplit = map(str, line.split('|'))
             Dsplit = map(float, Fsplit[1].split())
+            Dict[RowN[i]] = dict(id=i)
+            kvp = []
             for j in range(len(Dsplit)):
-                Dict[ColN[i]] = {'id':i,RowN[j]:{'id':j,'value':Dsplit[j]}}ss
+                kvp.append( (ColN[j],{'id':j,'value':Dsplit[j]}) )
+            Dict[RowN[i]].update(dict(kvp))
             i += 1
     
     return Dict
