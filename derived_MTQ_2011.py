@@ -1,10 +1,16 @@
 
+from iopostmcmc import readMCMChdr
+from iomcmc import ReadStartParams, ReadMCMCline
+from tqessential import LDC_v2u, computeRpRs
+from tqessential import getTags, computePeriod
+import MTQ_2011
+import numpy as np
 
 def printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
     """ print a file with Derived parameters from the MCMC ensemble. """
     
-    hdrKeys = postmcmc.readMCMChdr(MCMCfile)
-    ModelParams = mcmc.ReadStartParams(STARTFILE)
+    hdrKeys = readMCMChdr(MCMCfile)
+    ModelParams = ReadStartParams(STARTFILE)
     
     mcmcFile = open(MCMCfile,'r')
     mcmcFile = mcmcFile.readlines()
@@ -13,22 +19,22 @@ def printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
     for line in mcmcFile:
         derived = {}
         if not line.startswith('#'):
-            data_line = mcmc.ReadMCMCline(line,hdrKeys)
+            data_line = ReadMCMCline(line,hdrKeys)
             print 'step/line = ',format(long(data_line['istep']),'n')
             for key in ModelParams.keys():
                 if ModelParams[key]['open']:
                     ModelParams[key]['value'] = data_line[key]
             
-            Period = tqe.computePeriod(ModelParams)
+            Period = computePeriod(ModelParams)
             derived['Period'] = {'value':Period,'printformat':'.9f'}
             RefFilt = ModelParams['RefFilt']['printformat']
     
             # get Filter and Transit time tags
-            Tags = tqe.getTags(ModelParams)
+            Tags = getTags(ModelParams)
             
             # compute parameters used to compute lightcurve using the reference filter
             Dref, v1ref, v2ref = MTQ_2011.MTQ_FilterParams(RefFilt,Tags,ModelParams)
-            u1ref, u2ref = tqe.LDC_v2u(v1ref,v2ref)
+            u1ref, u2ref = LDC_v2u(v1ref,v2ref)
 
             tT = ModelParams['tT']['value']
             tG = ModelParams['tG']['value']
@@ -40,7 +46,8 @@ def printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
             derived['aRs'] = {'value':TransitRef['aRs'],'printformat':'.6f'}
             derived['velRs'] = {'value':TransitRef['velRs'],'printformat':'.6f'}
             derived['rho_star'] = {'value':TransitRef['rho_star'],'printformat':'.6f'}
-            derived['RpRs'+'.'+ModelParams['RefFilt']['printformat']] = {'value':TransitRef['RpRs'],'printformat':'.9f'}
+            derived['RpRs'+'.'+ModelParams['RefFilt']['printformat']] = \
+            {'value':TransitRef['RpRs'],'printformat':'.9f'}
             
             for key in ModelParams.keys():
                 if key.startswith('T0'):
@@ -49,8 +56,8 @@ def printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
             
                     # compute D, v1, v2 and then u1 and u2 for a given transit tag
                     D, v1, v2 = MTQ_2011.MTQ_FilterParams(transit_tag,Tags,ModelParams)
-                    u1, u2 = tqe.LDC_v2u(v1,v2)
-                    RpRs = tqe.computeRpRs(u1,u2,tT,tG,D)
+                    u1, u2 = LDC_v2u(v1,v2)
+                    RpRs = computeRpRs(u1,u2,tT,tG,D)
                     filterD = filterMatchD(transit_tag,Tags,ModelParams)
                     #print filterD
                     derived['RpRs'+'.'+filterD] = {'value':RpRs,'printformat':'.9f'}
@@ -64,15 +71,22 @@ def printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
                     keyorder[i] = keylist[i]
                 for i in range(Nkeys):
                     if i == 0:
-                        DerivedLine = str(format(derived[keylist[i]]['value'],derived[keylist[i]]['printformat']))
+                        DerivedLine =\
+                        str(format(derived[keylist[i]]['value'],\
+                        derived[keylist[i]]['printformat']))
                     else:
-                        DerivedLine = DerivedLine+'|'+str(format(derived[keylist[i]]['value'],derived[keylist[i]]['printformat']))
+                        DerivedLine =\
+                        DerivedLine+'|'+str(format(derived[keylist[i]]['value'],\
+                        derived[keylist[i]]['printformat']))
             else:
                 for i in range(Nkeys):
                     if i == 0:
-                        DerivedLine = str(format(derived[keylist[i]]['value'],derived[keylist[i]]['printformat']))
+                        DerivedLine =\
+                        str(format(derived[keylist[i]]['value'],\
+                        derived[keylist[i]]['printformat']))
                     else:
-                        DerivedLine = DerivedLine+'|'+str(format(derived[keylist[i]]['value'],derived[keylist[i]]['printformat']))
+                        DerivedLine = DerivedLine+'|'+str(format(derived[keylist[i]]['value'],\
+                        derived[keylist[i]]['printformat']))
 
             DerivedLine = DerivedLine+'|'+str(format(data_line['istep'],'.0f'))+'|:'
             print >> OutFileObject, DerivedLine

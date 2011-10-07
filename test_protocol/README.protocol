@@ -36,7 +36,7 @@
     To make the Trace check, change the starting points and run an alternate chain
 
 5. Derived Parameters
-    (Work in progress)
+    e.g. script: 05printderived.py
 
 6. Plot MCMC
     (see test_plotting/ folder)
