@@ -223,7 +223,7 @@ def mcmc_mh_adapt(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,Boun
 
     print 'MCMC is complete.'
 
-def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFile,ShowOutput):
+def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFunctionName,DerivedFile,ShowOutput):
     """ The main MCMC code for checking derived parameters.
         INPUT:
             Nsteps            - Number of MCMC steps
@@ -243,6 +243,8 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
     """
     
     exec "from myfunc import %s as ModelFunc" % FunctionName
+    exec "from myderivedfunc import %s as returnDerivedFunc" % DerivedFunctionName
+
 
     ModelParams0 = ModelParams.copy()
 
@@ -288,7 +290,7 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
 
     ModelParams1 = ModelParams.copy()
     chisq1 = chisq(DetrendedData1['all']['y'],DetrendedData1['all']['yerr'],ModelData1['all']['y'])
-    
+    keyList = {}
     while istep < Nsteps:
         if istep > 0: acr = float(selected_all_count)/float(istep)
         if selected_Nadapt_count == 100:
@@ -325,22 +327,22 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
             print 'bad chi-sq selection' # if this happens at start of simulation,
             sys.exit()                   # choose parameters that give lower chi-sq
         
-        #for key in ModelParams1.keys():
-            #print key, ModelParams1[key]['open']
-        #print alpha, u, min(1,alpha), chisq1, chisq2
         if u <= min(1,alpha):
             ModelParams1 = ModelParams2.copy()
             selected_all_count += 1
             selected_Nadapt_count += 1
             print >> OutFileObject, printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
             if ShowOutput: print printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
-            if printDerivedFlag: print >> OutDerivedFile, format(float(str(istep)),'.0f')+'|'+ModelData2['DerivedLine']
+            DerivedLine,keyList = returnDerivedFunc(ModelParams1,istep,keyList)
+            if printDerivedFlag: print >> OutDerivedFile, DerivedLine
         else:
             ModelParams1 = ModelParams1.copy()
             rejected_all_count += 1
             print >> OutFileObject, printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
             if ShowOutput: print printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
-            if printDerivedFlag: print >> OutDerivedFile, format(float(str(istep)),'.0f')+'|'+ModelData1['DerivedLine']
+            DerivedLine,keyList = returnDerivedFunc(ModelParams1,istep,keyList)
+            if printDerivedFlag: print >> OutDerivedFile, DerivedLine
+            
         ModelData1 = ModelFunc(ModelParams1,ObservedData)
         DetrendedData1 = DetrendData(ObservedData,ModelData1,NuisanceData,OutFile,writeDtCoeffFlag)
         chisq1 = chisq(DetrendedData1['all']['y'],DetrendedData1['all']['yerr'],ModelData1['all']['y'])
@@ -404,8 +406,8 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
                     a_coeff = LinearLeastSq_coeff(A_MAT,B_MAT)
                     a_coeff_list = map(None,a_coeff.getA1())
                     if writeDtCoeffFlag:
-                        printl1 = '##'
-                        printl2 = ''
+                        printl1 = '['+key+'] ##'
+                        printl2 = '['+key+']'
                         for idkey in nuisance_paramlist.keys():
                             printl1 = printl1+nuisance_paramlist[idkey]+'|'
                             printl2 = printl2+str(a_coeff_list[int(idkey)])+'|'
