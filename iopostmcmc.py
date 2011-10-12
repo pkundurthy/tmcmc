@@ -48,7 +48,6 @@ def readStatsFile(FileName):
     
     return Dict
     
-
 def readALLStats(**kwargs):
     """
         read data from stats files
@@ -215,11 +214,11 @@ def cropMCMC(mcmcfile,outfile,cropperc):
             data_line = ReadMCMCline(line,hdrkeys)
             if Nparams == 1:
                 if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
-                    print 'printing ',format(data_line['istep'],'n')
+                    print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
                     print >> outfileObject, line.strip('\n')
             if Nparams > 1:
                 if data_line['acr'] > 0.23-cropperc and data_line['acr'] < 0.23+cropperc:
-                    print 'printing ',format(data_line['istep'],'n')
+                    print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
                     print >> outfileObject, line.strip('\n')
 
     outfileObject.close()

@@ -26,14 +26,19 @@ def printMCMCline(param_tagorder,ModelParams,istep,frac,acr,chi1,chi2):
     """ Given ModelParams, the parameter order and other simulation parameters writes lines for the MCMC file. """
 
     line = ''
+        
     Nparams = len(param_tagorder.keys())
     # print param_tagorder
     for el in range(Nparams):
         if el == 0:
-            line = str(format(ModelParams[param_tagorder[el]]['value'],ModelParams[param_tagorder[el]]['printformat']))
+            line =\
+            str(format(ModelParams[param_tagorder[el]]['value'],\
+            ModelParams[param_tagorder[el]]['printformat']))
         if el > 0:
-            line = line+'|'+format(ModelParams[param_tagorder[el]]['value'],ModelParams[param_tagorder[el]]['printformat'])
-    line = line+'|'+str(format(istep,'.0f'))+'|'+str(frac)+'|'+str(acr)+'|'+str(format(chi1,'.4f'))+'|'+str(format(chi2,'.4f'))+'|:'
+            line = line+'|'+format(ModelParams[param_tagorder[el]]['value'],\
+            ModelParams[param_tagorder[el]]['printformat'])
+    line = line+'|'+str(format(istep,'.0f'))+'|'+str(frac)+'|'+str(acr)+\
+    '|'+str(format(chi1,'.4f'))+'|'+str(format(chi2,'.4f'))+'|:'
 
     return line
 

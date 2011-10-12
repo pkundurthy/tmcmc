@@ -1,4 +1,4 @@
- Last Updated: 2011-Oct-08 12:20:03
+ Last Updated: 2011-Oct-12 10:23:15
 
 
 + myderivedfunc.py
@@ -30,12 +30,13 @@
      AdaptiveMultiplierCheck(ModelParams):
      StepperFunction(ModelParams,frac):
      mcmc_mh_adapt(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,OutFile,ShowOutput):
-     mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFile,ShowOutput):
+     mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFunctionName,DerivedFile,ShowOutput):
      DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
      LinearLeastSq_coeff(A,B):
      ApplyBounds(ModelParams,BoundParams):
 
 + derived_MTQ_2011.py
+     returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
      printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
      filterMatchD(TransitTag,Tags,ModelParams):
 
