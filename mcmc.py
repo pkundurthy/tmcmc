@@ -278,7 +278,7 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
         selected_all_count = 0
         rejected_all_count = 0
         write_OR_append = 'w'
-        param_tagorder, headerLine = MakeMCMCheader(ModelParams0)
+        param_tagorder, headerline = MakeMCMCheader(ModelParams0)
 
     # Check the Single/Multi Parameter condition
     adaptMultiplier = AdaptiveMultiplierCheck(ModelParams)
@@ -411,7 +411,7 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
                     a_coeff = LinearLeastSq_coeff(A_MAT,B_MAT)
                     a_coeff_list = map(None,a_coeff.getA1())
                     if writeDtCoeffFlag:
-                        printl1 = '['+key+'] ##'
+                        printl1 = '## ['+key+']'
                         printl2 = '['+key+']'
                         for idkey in nuisance_paramlist.keys():
                             printl1 = printl1+nuisance_paramlist[idkey]+'|'

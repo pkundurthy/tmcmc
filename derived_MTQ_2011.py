@@ -5,6 +5,7 @@ from tqessential import LDC_v2u, computeRpRs
 from tqessential import getTags, computePeriod
 import MTQ_2011
 import numpy as np
+import os
 
 def returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
     """ print a file with Derived parameters from the MCMC ensemble. """
