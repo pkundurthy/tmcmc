@@ -1,6 +1,7 @@
 
-from iomcmc import ReadHeaderMCMC, ReadMCMCline
+from iomcmc import ReadHeaderMCMC, ReadMCMCline, ReadDetrendFile
 from iomcmc import PrintModelParams, ReadStartParams
+from mcmc import DetrendData
 import numpy as np
 import scipy
 import sys
@@ -292,3 +293,78 @@ def printErrors(MCMCfile,BestfitFile,OutputFile):
             str(useSingle)+'|:'
 
     OutFileObject.close()
+    
+def readDTfile(file,NuisONOFF):
+    """
+    read DT coefficients file.
+    """
+    
+    NuisanceData = ReadDetrendFile(NuisONOFF)
+    fileObj = open(file,'r')
+    fileLines = fileObj.readlines()
+    
+    itag = 0
+    TagList = []
+    DTco = {}
+    istep = 0
+    for j in range(len(fileLines)):
+        line = fileLines[j]
+        if line.startswith('##'):
+            line_header = map(str,line.split(']'))
+            tag = line_header[0].strip('#').strip().strip('[')
+            tag = tag.strip()
+            parTags = map(str,line_header[1].strip(':\n').split('|')[:-2])
+            if len(TagList) == 0:
+                Tag0 = tag
+            if tag == Tag0:
+                istep += 1
+                DTco[istep-1] = {}
+            if tag not in TagList:
+                itag += 1
+                TagList.append(tag)
+            line_data = map(str,fileLines[j+1].split(']'))
+            tagCheck = line_data[0].strip('[')
+            data = map(float,line_data[1].strip(':\n').split('|')[:-2])
+            tagCheck = tagCheck.strip()
+            if tagCheck != tag:
+                print 'tags mismatched ', tagCheck, tag
+                sys.exit(1)
+            elif len(data) != len(parTags):
+                print 'lengths mismatched ', len(data),len(parTags)
+            else:
+                pass
+            kvp = []
+            for i in range(len(parTags)):
+                if parTags[i] in NuisanceData[tag]['dtparams'].keys():
+                    kvp.append( (parTags[i],data[i]) )
+            #print parTags
+            #print NuisanceData[tag]['dtparams'].keys()
+            #print kvp
+            DTco[istep-1].update({tag:dict(kvp)})
+             
+    return DTco
+
+def generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+    """
+    Generate DT data from MCMCfile
+    """
+    
+    exec "from myfunc import %s as ModelFunc" % FuncName
+    
+    DataMCMC = readMCMC(MCMCFile)
+    DTco = {}
+    for i in range(len(DataMCMC['istep'])):
+        DTco[i] = {}
+        for key in DataMCMC.keys():
+            if not isNonParam(key):
+                ModelParams[key]['value'] = DataMCMC[key][i]
+        
+        ModelData = ModelFunc(ModelParams,ObservedData)
+        DetrendedData = DetrendData(ObservedData,ModelData,NuisanceData,'',False)
+        
+        for tag in DetrendedData.keys():
+            if not tag.startswith('all'):
+                DTco[i].update({tag:DetrendedData[tag]['dtcoeff']})
+        
+    return DTco
+    

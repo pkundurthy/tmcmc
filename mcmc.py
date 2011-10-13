@@ -252,6 +252,8 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
 
 
     ModelParams0 = ModelParams.copy()
+    if printDerivedFlag:
+        DTfile = open('DTCOEFF.'+OutFile,'w')
 
     if resumeFlag:
         if checkFileExists(OutFile):
@@ -334,15 +336,23 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
         
         if u <= min(1,alpha):
             ModelParams1 = ModelParams2.copy()
+            DetrendedData1 = DetrendedData2.copy()
             selected_all_count += 1
             selected_Nadapt_count += 1
+            if printDerivedFlag:
+                dtline = getDTCOEFFlines(DetrendedData1)
+                print >> DTfile, dtline
             print >> OutFileObject, printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
             if ShowOutput: print printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
             DerivedLine,keyList = returnDerivedFunc(ModelParams1,istep,keyList)
             if printDerivedFlag: print >> OutDerivedFile, DerivedLine
         else:
             ModelParams1 = ModelParams1.copy()
+            DetrendedData1 = DetrendedData1.copy()
             rejected_all_count += 1
+            if printDerivedFlag:
+                dtline = getDTCOEFFlines(DetrendedData1)
+                print >> DTfile, dtline
             print >> OutFileObject, printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
             if ShowOutput: print printMCMCline(param_tagorder,ModelParams1,istep,frac,acr,chisq1,chisq2)
             DerivedLine,keyList = returnDerivedFunc(ModelParams1,istep,keyList)
@@ -355,8 +365,28 @@ def mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceD
         istep += 1
 
     OutFileObject.close()
-
+    DTfile.close()
     print 'MCMC is complete.'
+
+def getDTCOEFFlines(DetrendData):
+    """
+
+    """
+    line = ''
+    for tag in DetrendData.keys():
+        printl1 = ''
+        printl2 = ''
+        if not tag.startswith('all'):
+            printl1 += '## ['+tag+']'
+            printl2 += '['+tag+']'
+            for parkey in DetrendData[tag]['dtcoeff'].keys():
+                printl1 += parkey+'|'
+                printl2 += str(DetrendData[tag]['dtcoeff'][parkey])+'|'
+            printl1 += ':'
+            printl2 += ':'
+            line += printl1+'\n'+printl2+'\n'
+    
+    return line[:-1]
 
 def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
     """ Performs Detrending of Observed Data using Nuisance parameters.
@@ -368,8 +398,6 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
         return ObservedData
     else:
         DetrendedData = {}
-        if writeDtCoeffFlag:
-            DtCoeffFile = open('DTCOEFF.'+OutFile,'a')
         for key in NuisanceData.keys():
             if not key == 'GlobalSwitch':
                 x0 = ObservedData[key]['x']
@@ -410,16 +438,6 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
                     #print np.shape(A_MAT), np.shape(Xi)
                     a_coeff = LinearLeastSq_coeff(A_MAT,B_MAT)
                     a_coeff_list = map(None,a_coeff.getA1())
-                    if writeDtCoeffFlag:
-                        printl1 = '## ['+key+']'
-                        printl2 = '['+key+']'
-                        for idkey in nuisance_paramlist.keys():
-                            printl1 = printl1+nuisance_paramlist[idkey]+'|'
-                            printl2 = printl2+str(a_coeff_list[int(idkey)])+'|'
-                        printl1 = printl1+':'
-                        printl2 = printl2+':'
-                        print >> DtCoeffFile, printl1
-                        print >> DtCoeffFile, printl2
                     XiMatrix = np.matrix(Xi)
                     a_coeffMatrix = np.matrix(a_coeff[:,0])
                     CorrectionFunction = XiMatrix*a_coeffMatrix

@@ -190,3 +190,4 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
     print >> OutFileObject, '## ALL ## Corr Length = '+format(max(clen),'d')
     print >> OutFileObject, '## ALL ## Eff Length = '+format(min(elen),'d')
     OutFileObject.close()
+
