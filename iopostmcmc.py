@@ -439,7 +439,7 @@ def correctionFromDTfile(file,NuisONOFF):
                 if parTags[i] != 'const':
                     Correction += data[i]*np.array(NuisanceData[tag]\
                     ['dtparams'][parTags[i]]['data'])
-                
+            print istep-1
             #print parTags
             #print NuisanceData[tag]['dtparams'].keys()
             #print kvp

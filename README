@@ -1,4 +1,4 @@
- Last Updated: 2011-Oct-12 13:22:05
+ Last Updated: 2011-Oct-13 00:28:13
 
 
 + myderivedfunc.py
@@ -31,6 +31,7 @@
      StepperFunction(ModelParams,frac):
      mcmc_mh_adapt(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,OutFile,ShowOutput):
      mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFunctionName,DerivedFile,ShowOutput):
+     getDTCOEFFlines(DetrendData):
      DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
      LinearLeastSq_coeff(A,B):
      ApplyBounds(ModelParams,BoundParams):
@@ -90,6 +91,10 @@
      cropMCMC(mcmcfile,outfile,cropperc):
      makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):
      printErrors(MCMCfile,BestfitFile,OutputFile):
+     readDTfile(file,NuisONOFF):
+     generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+     correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+     correctionFromDTfile(file,NuisONOFF):
 
 + tqessential.py
      ekepler(m,e):
