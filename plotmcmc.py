@@ -1,29 +1,14 @@
-
-import matplotlib
 import sys
 import numpy as np
 import scipy
 import scipy.ndimage
-from matplotlib import pyplot as plt
 from iopostmcmc import isNonParam, read1parMCMC, getPars
-from iomcmc import ReadStartParams
+from iomcmc import ReadStartParams, checkFileExists
 from binning import MedianMeanOutlierRejection
+import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import fontManager, FontProperties
-
-def returnTsub(TSTAMP):
-    """ For a parameter with transit time tag, 
-    return latex symbol 
-    """
-    
-    if TSTAMP.startswith('T'):
-        Tnum = TSTAMP.strip('T').strip('0.').strip('T')
-        Tsub = '$T_{%s}$' % Tnum
-    else:
-        Tsub = 'Wrong'
-        
-    return Tsub
 
 def rangeMidpoints(x):
     """
@@ -125,197 +110,163 @@ def JC(par1,par2,dataMCMC):
     #cb = plt.colorbar(CSV)
     return plt.figure
     
+def getRange(d,**kwargs):
     
-def checkFormatTT(data,parName,**kwargs):
-    """
-        Format data and labels for transit timing MCMC
-    """
-    
-    #check for param files
+    # default
+    ext0 = 1
+    ext1 = 1
     for key in kwargs:
-        if key.lower().startswith('lowchi'):
-            par1 = ReadStartParams(kwargs[key])
-        elif key.lower().startswith('minuit'):
-            par2 = ReadStartParams(kwargs[key])
+        if key.lower() == 'ext0':
+            ext0 = float(kwargs[key])
+        elif key.lower() == 'ext1':
+            ext1 = float(kwargs[key])
         else:
-            print 'No params files recognized'
-            sys.exit()
-    
-    if parName.startswith('T0'):
-        x = ((np.array(data[parName]) - par1[parName]['value'])*86400e0).tolist()
-        data[parName] = x
-        p2d = (par2[parName]['value'] - par1[parName]['value'])*86400e0
-        Odata = {'lowchi':{'data':[-9e9,0]},\
-                 'minuit':{'data':[-9e9,p2d],\
-                 'err':[0,par2[parName]['step']*86400e0]} }
-        parSym = '$T_{mid}$ - '+returnTsub(parName)
-        AxFormat = FormatStrFormatter('%.3f')
-    elif parName.startswith('D'):
-        msplit = map(str,parName.split('.'))
-        TT = ''
-        for j in range(len(msplit)):
-            if j > 0:
-                TT += returnTsub(msplit[j]).strip('$')+' '
-        Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-                 'minuit':{'data':[-9e9,par2[parName]['value']],\
-                 'err':[0,par2[parName]['step']]} }
-        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
-        AxFormat = FormatStrFormatter('%.4f')
-    elif parName == 'tG':
-        Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-                 'minuit':{'data':[-9e9,par2[parName]['value']],\
-                 'err':[0,par2[parName]['step']]} }
-        parSym = r'$\tau_{G}$'
-        AxFormat = FormatStrFormatter('%.4f')
-    elif parName == 'tT':
-        Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-                 'minuit':{'data':[-9e9,par2[parName]['value']],\
-                 'err':[0,par2[parName]['step']]} }
-        parSym = r'$\tau_{T}$'
-        AxFormat = FormatStrFormatter('%.4f')
-    else:
-        Odata = {'lowchi':{'data':[-9e9,par1[parName]['value']]},\
-                 'minuit':{'data':[-9e9,par2[parName]['value']],\
-                 'err':[0,par2[parName]['step']]} }
-        parSym = parName
-        AxFormat = None
+            continue
 
-    return data, parSym, AxFormat, Odata
+    d = np.array(d)
+    mm, sdv, ngood, goodindex, badindex = \
+    MedianMeanOutlierRejection(d,5,'median')
+    
+    rg = (min(d[goodindex]), max(d[goodindex]))
+    
+    rg0 = rg[0] - ext0*(rg[1]-rg[0])
+    rg1 = rg[1] + ext1*(rg[1]-rg[0])
+    
+    return rg0,rg1
+    
+def axisTicks(rg0,rg1):
+    """
+    sets 2 ticks per MCMC plot axis
+    """
 
-def robust1sigma(x):
-    """
-    return 1-sigma
-    """
-    x = x-np.median(x)
-    dsort = np.sort(x)
-    npts = len(x)
-    sigma = (x[.8415*npts]-x[.1585*npts])/2e0
-    
-    return sigma
+    return tuple([0.75*rg0+0.25*rg1,0.25*rg0+0.75*rg1])
 
-def getPlotLoc(d1,d2,spaceTopR):
-    """
-    
-    """
-    
-    d1 = np.array(d1)
-    d2 = np.array(d2)
-    mm1, sdv1, ngood1, goodindex1, badindex1 = MedianMeanOutlierRejection(d1, 5, 'median')
-    mm2, sdv2, ngood2, goodindex2, badindex2 = MedianMeanOutlierRejection(d2, 5, 'median')
-    #print np.shape(goodindex1), np.shape(goodindex2), np.shape(d1), np.shape(d2)
-    
-    xrg = (min(d1[goodindex1]), max(d1[goodindex1]))
-    yrg = (min(d2[goodindex2]), max(d2[goodindex2]))
-    #xrg = (np.median(d1)-10*sigma1,np.median(d1)+10*sigma1)
-    #yrg = (np.median(d2)-10*sigma2,np.median(d2)+10*sigma2)
-    
-    xrg0 = xrg[0]
-    yrg0 = yrg[0]
-    xrg1 = spaceTopR*(xrg[1]-xrg[0])+xrg[0]
-    yrg1 = spaceTopR*(yrg[1]-yrg[0])+yrg[0]
-                
-    xpos = np.zeros(3)+(0.70*(xrg1-xrg0) + xrg0)
-    ypos = np.linspace(0.70,0.90,3)*(yrg1-yrg0) + yrg0
-    
-    return xrg0,xrg1,yrg0,yrg1,xpos,ypos
+class triplot:
 
-def trianglePlotTT(DataFile,Stats,spaceTopR,**kwargs):
-    """
-    
-    """
-    
-    parList = getPars(DataFile)
-    Npar = len(parList)
-    iplot = 1
-    nyticks = 2
-    nxticks = 2
-    
-    for key in kwargs:
-        if key.lower().startswith('lowchi'):
-            fit1 = kwargs[key]
-        elif key.lower().startswith('minuit'):
-            fit2 = kwargs[key]
-        else:
-            print 'No params files recognized'
-            sys.exit()
+    def __init__(self,GridDict,MCMCFile):
+        
+        maxX = 0
+        maxY = 0
+        for key in GridDict:
+            if key[0] > maxX:
+                maxX = key[0]
+            if key[1] > maxY:
+                maxY = key[1]
+            
+        self.GridNX = maxX+1
+        self.GridNY = maxY+1
+        parList = []
+        for ix in range(GridNX):
+            for iy in range(GridNY):
+                parList.append(GridDict[(ix,iy)][0])
+                parList.append(GridDict[(ix,iy)][0])
+                try:
+                    dummy = GridDict[(ix,iy)]
+                except:
+                    GridDict[(ix,iy)] = None
 
-    for iy in range(Npar):
-        for ix in range(Npar):
-            if not ix >= iy:
-                parName1 = parList[ix]
-                parName2 = parList[iy]
-                plt.subplot(Npar-1,Npar-1,iplot)
-                d1 = read1parMCMC(DataFile,parName1)
-                d2 = read1parMCMC(DataFile,parName2)
+        self.parList = list(set(parList))
+        self.GridDict = GridDict
+        self.MCMCFile = MCMCFile
+        self.ParDict = {}
+ 
+    def addFits(self,Label,parDict,**kwargs):
+        
+        mkt = 'o'
+        mkc = 'r'
+        UseErr = False
+        try:
+            dummy = self.Points
+        except:
+            self.Points = {}
+        
+        for key in kwargs:
+            if key.lower().startswith('markertype'):
+                mkt = kwargs[key]
+            elif key.lower().startswith('markercolor'):
+                mkc = kwargs[key]
+            elif key.lower() == 'useerror':
+                UseErr = kwargs[key]
+            else:
+                pass
+        
+        self.Points[Label] = {'dict':ParDict,\
+                              'mkt':mkt,\
+                              'mkc':mkc,\
+                              'UseErr':UseErr,\
+                              'File':FileName}
+                              
+    def generateAxisText(**kwargs):
+        
+        for key in kwargs:
+            if key.lower() == 'parformat':
+                self.parDict.update(kwargs[key])
+            else:
+                for par in self.parList:
+                    self.parDict[par] =\
+                    {'label':par,'axForm':None}
+                    
+    def generateAxisProperties(**kwargs):
+        
+        for key in kwargs:
+            if key.lower() == 'axisform':
+                self.parDict.update(kwargs[key])
+            else:
+                for par in self.parList:
+                    self.parDict[par] =\
+                    {'axisTicks':None,\
+                     'axisRange':None}
+                     
+    def initPlots(self,**kwargs):
+        
+        UseHist = False
+        bins = 15
+        DataDict = {}
+        for key in kwargs:
+            if key.lower() == 'hist':
+                UseHist = kwargs[key]
+            if key.lower() == 'histbins':
+                bins = kwargs[key]
+            if key.lower() == 'data':
+                DataDict = kwargs[key]
+            else:
+                for par in self.parList:
+                    DataDict[par] = read1parMCMC(self.DataFile,par)
+        
+        HistX = {}
+        for ix in range(self.GridNX):
+            xName=[]
+            ymax = 0
+            for iy in range(self.GridNY):
+                if not self.GridDict[(ix,iy)] == None:
+                    #Get the x and y data for contour plot
+                    par_x = self.GridDict[(ix,iy)][0]
+                    par_y = self.GridDict[(ix,iy)][1]
+                    d_x = DataDict[par_x]
+                    d_y = DataDict[par_y]
+                    PlotGrid[(ix,iy)] = singleJC(d_x,d_y)
+                    xName.append(self.GridDict[(ix,iy)][0])
+                    ymax =+ 1
+                else:
+                    PlotGrid[(ix,iy)] = None
+            if len(list(set(xName))) > 1 and useHist:
+                raise NameError("X parameters not same for histogram plot")
+            elif len(list(set(xName))) == 0:
+                raise NameError("X parameters not found MCMC plot")
+            else:
+                HistX.update({par_x:(ix,ymax+1)})
                 
-                d1,parSym1,axF1,Odata1 = \
-                checkFormatTT(d1,parName1,\
-                lowchi=fit1,minuit=fit2)
-                
-                d2,parSym2,axF2,Odata2 = \
-                checkFormatTT(d2,parName2,\
-                lowchi=fit1,minuit=fit2)
-                
-                xrg0, xrg1, yrg0, yrg1, xpos, ypos = \
-                getPlotLoc(d1[parName1],d2[parName2],spaceTopR)
-                
-                fig = singleJC(d1,d2)
-                
-                cov = r'$|\sigma_{(x,y)}|$='+\
-                format(abs(Stats['cov'][parName1][parName2]['value']),'0.2f')
-                
-                spe = r'$|\rho|$='+\
-                format(abs(Stats['spear'][parName1][parName2]['value']),'0.2f')
-                
-                pea = r'$|r|$='+\
-                format(abs(Stats['pear'][parName1][parName2]['value']),'0.2f')
-                
-                yticks = tuple([0.75*yrg0+0.25*yrg1,0.25*yrg0+0.75*yrg1])
-                xticks = tuple([0.75*xrg0+0.25*xrg1,0.25*xrg0+0.75*xrg1])
-                plt.setp(plt.gca(), yticks=yticks,xticks=xticks)
-                #supress xtick labels for plots not at bottom
-    
-                plt.xlim([xrg0,xrg1])
-                plt.ylim([yrg0,yrg1])
-                #print iplot, xrg, yrg
-                if iy != Npar-1:
-                    plt.setp(plt.gca(), xticklabels=[])
-                    #print ' no x ', iplot
-                    #pass
-                #supress ytick labels for plots not at left corner
-                if ix != 0:
-                    plt.setp(plt.gca(), yticklabels=[])
-                    #print ' no y ', iplot
-                    #pass
-                #print xlabels for bottom row
-                if iy == Npar-1:
-                    plt.xlabel(parSym1, fontsize=16)
-                    if axF1 != None:
-                        plt.setp(plt.gca().xaxis.set_major_formatter(axF1))
-                #print ylabels for left corner column
-                if ix == 0:
-                    plt.ylabel(parSym2, fontsize=16)
-                    if axF2 != None:
-                        plt.setp(plt.gca().yaxis.set_major_formatter(axF2))
-                
-                plt.plot(Odata1['lowchi']['data'],Odata2['lowchi']['data'],'ko',label='MCMC')
-                plt.plot(Odata1['minuit']['data'],Odata2['minuit']['data'],'bo',label='Minuit')
-                plt.errorbar(Odata1['minuit']['data'],Odata2['minuit']['data'],\
-                yerr=Odata2['minuit']['err'],xerr=Odata1['minuit']['err'],fmt=None)
-                
-                plt.text(xpos[0],ypos[0],cov)
-                plt.text(xpos[1],ypos[1],spe)
-                plt.text(xpos[2],ypos[2],pea)
-                plt.subplots_adjust(hspace=0)
-                plt.subplots_adjust(wspace=0)
-                
-            if iy != 0 and ix != Npar-1:
-                iplot += 1
-                
-    #plt.subplot(Npar-1,Npar-1,Npar-1)
-    #plt.axis('off')
-    LegFont = FontProperties(size=16)
-    plt.legend( ('MCMC','Minuit'), numpoints=1,loc='center',\
-    prop=LegFont, bbox_to_anchor=(0.6,1.5) )
+        print PlotGrid
+        print HistX
 
-    plt.show()
+        for par in self.parList:
+            if UseHist:
+                histPlot = hist(data[par], bins=bins)
+            else:
+                histPlot = None
+
+            ParDict[par] = {'label':label,\
+                            'axisTicks':axisTicks,\
+                            'axisRange':rg}
+                            
+            PlotGrid[(ix,iy)] = histPlot

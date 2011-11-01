@@ -1,4 +1,4 @@
- Last Updated: 2011-Oct-13 00:28:13
+ Last Updated: 2011-Nov-01 03:08:30
 
 
 + myderivedfunc.py
@@ -65,11 +65,22 @@
 
 + myboundfunc.py
 
++ myplotfunc.py
+
 + iobinning.py
      ReadData(file):
      WriteLightCurveFile(OutFileName,file,IngressTime,EgressTime):
      WriteNuisanceFile(OutFileName,file):
      WriteLCNUSoutlierRejection(OutFileTag,file,IngressTime,EgressTime):
+
++ plotTransit.py
+     returnTsub(TSTAMP):
+     TForm(parName):
+     TransitParFormat(parlist):
+     TData(d,parName,par1):
+     PrepTransitData(DataFile,parlist,BestFitPar):
+     robust1sigma(x):
+     makeStatLabels(Stats,DataFile):
 
 + func_example.py
      quad(ModelParams,ObservedData):
@@ -113,15 +124,12 @@
      slopefitquick(x,y):
 
 + plotmcmc.py
-     returnTsub(TSTAMP):
      rangeMidpoints(x):
      return1Dfrom2D(arr2D):
      singleJC(data1,data2):
      JC(par1,par2,dataMCMC):
-     checkFormatTT(data,parName,**kwargs):
-     robust1sigma(x):
-     getPlotLoc(d1,d2,spaceTopR):
-     trianglePlotTT(DataFile,Stats,spaceTopR,**kwargs):
+     getRange(d,**kwargs):
+     axisTicks(rg0,rg1):
 
 + binning.py
      MedianMeanOutlierRejection(indata, cutoff, choice):

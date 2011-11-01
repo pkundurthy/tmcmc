@@ -12,5 +12,7 @@ import plotmcmc
 import myfunc
 import myboundfunc
 import myderivedfunc
+import myplotfunc
 
 import runminuit
+
