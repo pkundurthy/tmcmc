@@ -7,8 +7,10 @@ from iomcmc import ReadStartParams, checkFileExists
 from binning import MedianMeanOutlierRejection
 import matplotlib
 from matplotlib import pyplot as plt
-from matplotlib.ticker import FormatStrFormatter
+from matplotlib.ticker import FormatStrFormatter,MaxNLocator
 from matplotlib.font_manager import fontManager, FontProperties
+from matplotlib.gridspec import GridSpec
+
 
 def rangeMidpoints(x):
     """
@@ -44,7 +46,7 @@ def singleJC(data1,data2):
             par2 = key
             new_data[par2] = data2[par2]
             
-    JC(par1,par2,new_data)
+    return JC(par1,par2,new_data)
 
 def JC(par1,par2,dataMCMC):
     """ make a single Joint-Correlation plot """
@@ -113,8 +115,8 @@ def JC(par1,par2,dataMCMC):
 def getRange(d,**kwargs):
     
     # default
-    ext0 = 1
-    ext1 = 1
+    ext0 = 0
+    ext1 = 0
     for key in kwargs:
         if key.lower() == 'ext0':
             ext0 = float(kwargs[key])
@@ -141,34 +143,53 @@ def axisTicks(rg0,rg1):
 
     return tuple([0.75*rg0+0.25*rg1,0.25*rg0+0.75*rg1])
 
+def subID(Coord,Nx,Ny):
+    x = Coord[0]
+    y = Coord[1]
+    TotalPlots = Nx*Ny
+    flipx = x
+    flipy = Ny-1-y
+    plotID = flipy*Nx+(flipx+1)
+    
+    return plotID
+    
+
 class triplot:
 
-    def __init__(self,GridDict,MCMCFile):
+    def __init__(self,GridDict,MCMCFile,xp,yp):
         
-        maxX = 0
+        
         maxY = 0
-        for key in GridDict:
-            if key[0] > maxX:
-                maxX = key[0]
-            if key[1] > maxY:
-                maxY = key[1]
+        maxX = 0
+        for Grid in GridDict.keys():
+            if Grid[0] > maxX:
+                maxX = Grid[0]
+            if Grid[1] > maxY:
+                maxY = Grid[1]
             
         self.GridNX = maxX+1
         self.GridNY = maxY+1
+        
         parList = []
-        for ix in range(GridNX):
-            for iy in range(GridNY):
-                parList.append(GridDict[(ix,iy)][0])
-                parList.append(GridDict[(ix,iy)][0])
+        for ix in range(self.GridNX):
+            for iy in range(self.GridNY):
                 try:
-                    dummy = GridDict[(ix,iy)]
+                    parList.append(GridDict[(ix,iy)][0])
+                    parList.append(GridDict[(ix,iy)][1])
                 except:
                     GridDict[(ix,iy)] = None
 
         self.parList = list(set(parList))
         self.GridDict = GridDict
-        self.MCMCFile = MCMCFile
-        self.ParDict = {}
+        self.DataFile = MCMCFile
+        self.xpars = xp
+        self.ypars = yp
+        self.parDict = {}
+        for par in parList:
+            self.parDict[par] = {'label':par,\
+                                 'axForm':None,\
+                                 'axisTicks':None,\
+                                 'axisRange':None}
  
     def addFits(self,Label,parDict,**kwargs):
         
@@ -176,9 +197,9 @@ class triplot:
         mkc = 'r'
         UseErr = False
         try:
-            dummy = self.Points
+            dummy = self.Fits
         except:
-            self.Points = {}
+            self.Fits = {}
         
         for key in kwargs:
             if key.lower().startswith('markertype'):
@@ -190,32 +211,28 @@ class triplot:
             else:
                 pass
         
-        self.Points[Label] = {'dict':ParDict,\
-                              'mkt':mkt,\
-                              'mkc':mkc,\
-                              'UseErr':UseErr,\
-                              'File':FileName}
-                              
-    def generateAxisText(**kwargs):
+        self.Fits[Label] = {'dict':parDict,\
+                            'mkt':mkt,\
+                            'mkc':mkc,\
+                            'UseErr':UseErr}
+    
+    def generateAxisText(self,**kwargs):
         
         for key in kwargs:
             if key.lower() == 'parformat':
-                self.parDict.update(kwargs[key])
-            else:
                 for par in self.parList:
-                    self.parDict[par] =\
-                    {'label':par,'axForm':None}
+                    self.parDict[par].update(kwargs[key][par])
+            else:
+                pass
                     
-    def generateAxisProperties(**kwargs):
+    def generateAxisProperties(self,**kwargs):
         
         for key in kwargs:
             if key.lower() == 'axisform':
-                self.parDict.update(kwargs[key])
-            else:
                 for par in self.parList:
-                    self.parDict[par] =\
-                    {'axisTicks':None,\
-                     'axisRange':None}
+                    self.parDict[par].update(kwargs[key][par])
+            else:
+                pass
                      
     def initPlots(self,**kwargs):
         
@@ -233,40 +250,119 @@ class triplot:
                 for par in self.parList:
                     DataDict[par] = read1parMCMC(self.DataFile,par)
         
-        HistX = {}
-        for ix in range(self.GridNX):
-            xName=[]
-            ymax = 0
-            for iy in range(self.GridNY):
-                if not self.GridDict[(ix,iy)] == None:
-                    #Get the x and y data for contour plot
-                    par_x = self.GridDict[(ix,iy)][0]
-                    par_y = self.GridDict[(ix,iy)][1]
-                    d_x = DataDict[par_x]
-                    d_y = DataDict[par_y]
-                    PlotGrid[(ix,iy)] = singleJC(d_x,d_y)
-                    xName.append(self.GridDict[(ix,iy)][0])
-                    ymax =+ 1
-                else:
-                    PlotGrid[(ix,iy)] = None
-            if len(list(set(xName))) > 1 and useHist:
-                raise NameError("X parameters not same for histogram plot")
-            elif len(list(set(xName))) == 0:
-                raise NameError("X parameters not found MCMC plot")
-            else:
-                HistX.update({par_x:(ix,ymax+1)})
-                
-        print PlotGrid
-        print HistX
-
+        self.bins = bins
+        self.UseHist = UseHist
+        self.DataDict = DataDict
+        if self.UseHist:
+            self.GridNX += 1
+            self.GridNY += 1
+            
+        HistDict = {}
         for par in self.parList:
-            if UseHist:
-                histPlot = hist(data[par], bins=bins)
+            ix = None
+            iy = None
+            try:
+                xid = self.xpars.index(par)
+            except:
+                xid = None
+            try:
+                yid = self.ypars.index(par)
+            except:
+                yid = None
+            if xid != None:
+                ix = xid
+                iy = self.GridNY-xid-1
+                Or = 'vertical'
             else:
-                histPlot = None
+                ix = self.GridNX-1
+                iy = 0
+                Or = 'horizontal'
+            if UseHist:
+                HistDict[(ix,iy)] = (par,Or)
+            else:
+                HistDict[(ix,iy)] = None
+        
+        self.HistDict = HistDict
+            
+    def makePlot(self, **kwargs):
+        
+        Print2File = False
+        FileName = None
+        fSzX = 16
+        fSzY = 16
+        for key in kwargs:
+            if key.startswith('plotfile'):
+                Print2File = True
+                FileName = kwargs[key]
+        
+        #print self.PlotGrid
+        for Grid in self.GridDict.keys():
+            if self.GridDict[Grid] != None:
+                par_x = self.GridDict[Grid][0]
+                par_y = self.GridDict[Grid][1]
+                d_x = {par_x:self.DataDict[par_x]}
+                d_y = {par_y:self.DataDict[par_y]}
+                plotID = subID(Grid,self.GridNX,self.GridNY)
+                plt.subplot(self.GridNX,self.GridNY,plotID)
+                singleJC(d_x,d_y)
+                plt.xlim(self.parDict[par_x]['range'])
+                plt.ylim(self.parDict[par_y]['range'])
+                plt.xlabel(self.parDict[par_x]['label'])
+                plt.ylabel(self.parDict[par_y]['label'])
+                #print par_x, par_y
+                plt.setp(plt.gca(),\
+                         xticks=self.parDict[par_x]['axisTicks'],\
+                         yticks=self.parDict[par_y]['axisTicks'])
+                if Grid[1] == 0:
+                    plt.xlabel(self.parDict[par_x]['label'],\
+                               fontsize=fSzX)
+                    plt.setp(plt.gca().xaxis.set_major_formatter(self.parDict[par_x]['axForm']))
+                else:
+                    plt.setp(plt.gca(),xticklabels=[])
+                if Grid[0] == 0:
+                    plt.ylabel(self.parDict[par_y]['label'],\
+                               fontsize=fSzY)
+                    plt.setp(plt.gca().yaxis.set_major_formatter(self.parDict[par_y]['axForm']))
+                else:
+                    plt.setp(plt.gca(),yticklabels=[])
+        
+        if self.UseHist:
+            #print self.GridNX, self.GridNY
+            #for key in self.HistDict.keys(): print key, self.HistDict[key]
+            #sys.exit()
+            for Grid in self.HistDict.keys():
+                if self.HistDict[Grid] != None:
+                    par = self.HistDict[Grid][0]
+                    ori = self.HistDict[Grid][1]
+                    d = {par:self.DataDict[par]}
+                    plotID = subID(Grid,self.GridNX,self.GridNY)
+                    plt.subplot(self.GridNX,self.GridNY,plotID)
+                    plt.hist(d[par],bins=self.bins,orientation=ori)
+                    tickForm = FormatStrFormatter('%.2e')
+                    if ori.startswith('vert'): 
+                        plt.setp(plt.gca(),xticklabels=[])
+                        plt.setp(plt.gca().yaxis.set_major_formatter(tickForm))
+                        tickLoc = MaxNLocator(nbins=4,prune='both')
+                        plt.setp(plt.gca().yaxis.set_major_locator(tickLoc))
+                        for tick in plt.gca().yaxis.get_major_ticks():
+                            tick.label1On = False
+                            tick.label2On = True
+                        plt.xlim(self.parDict[par]['range'])
+                        for tick in plt.gca().yaxis.get_major_ticks():
+                            tick.label1On = False
+                            tick.label2On = True
+                        plt.xlim(self.parDict[par]['range'])
+                    else:
+                        plt.setp(plt.gca().xaxis.set_major_formatter(tickForm))
+                        tickLoc = MaxNLocator(nbins=2,prune='both')
+                        plt.setp(plt.gca().xaxis.set_major_locator(tickLoc))
+                        plt.setp(plt.gca(),yticklabels=[])
+                        for tick in plt.gca().xaxis.get_major_ticks():
+                            tick.label1On = False
+                            tick.label2On = True
+                        plt.ylim(self.parDict[par]['range'])
 
-            ParDict[par] = {'label':label,\
-                            'axisTicks':axisTicks,\
-                            'axisRange':rg}
-                            
-            PlotGrid[(ix,iy)] = histPlot
+        plt.subplots_adjust(hspace=0)
+        plt.subplots_adjust(wspace=0)
+        
+        plt.show()

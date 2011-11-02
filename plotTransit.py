@@ -1,7 +1,11 @@
 import itertools
+from iopostmcmc import read1parMCMC
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.font_manager import fontManager, FontProperties
 from plotmcmc import getRange, axisTicks
+from tmcmc.iomcmc import ReadStartParams
+import numpy as np
+
 
 def returnTsub(TSTAMP):
     """ For a parameter with transit time tag, 
@@ -23,16 +27,25 @@ def TForm(parName):
         AxFormat = FormatStrFormatter('%.3f')
     elif parName.startswith('D'):
         msplit = map(str,parName.split('.'))
-        TT = 'T0'
-        for i in range(len(msplit)-1): TT += msplit[i+1]
-        parSym = '$'+msplit[0]+'_{(%s)}$' % returnTsub(TT)
+        TT = ''
+        for i in range(len(msplit)): 
+            if i > 0: 
+                TT += returnTsub(msplit[i]).strip('$')+' '
+        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
         AxFormat = FormatStrFormatter('%.4f')
-    elif parName == 'tG':
+    elif parName == 'tT':
         parSym = r'$\tau_{T}$'
         AxFormat = FormatStrFormatter('%.4f')
+    elif parName == 'tG':
+        parSym = r'$\tau_{G}$'
+        AxFormat = FormatStrFormatter('%.4f')
     elif parName.startswith('v'):
-        parSym = '$ v_{%s,(%s)}$' % (msplit[0][1],TT)
-        AxFormat = FormatStrFormatter('%.5f')
+        msplit = map(str,parName.split('.'))
+        TT = ''
+        for i in range(len(msplit)): 
+            if i > 0: TT += returnTsub(msplit[i]).strip('$')+' '
+        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+        AxFormat = FormatStrFormatter('%.4f')
     else:
         parSym = parName
         AxFormat = None
@@ -73,11 +86,11 @@ def PrepTransitData(DataFile,parlist,BestFitPar):
         x = read1parMCMC(DataFile,par)
         d = x[par]
         parData[par] = TData(d,par,BestFitPar[par]['value'])
-        rg0,rg1 = getRange(d)
+        rg0,rg1 = getRange(parData[par])
         axisData[par] = {'range':(rg0,rg1),'axisTicks':axisTicks(rg0,rg1)}
         
     return parData, axisData
-
+    
 def robust1sigma(x):
     """
         return 1-sigma
