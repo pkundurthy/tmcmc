@@ -42,7 +42,7 @@ def TForm(parName):
     elif parName.startswith('v'):
         msplit = map(str,parName.split('.'))
         TT = ''
-        for i in range(len(msplit)): 
+        for i in range(len(msplit)):
             if i > 0: TT += returnTsub(msplit[i]).strip('$')+' '
         parSym = '$'+msplit[0]+'_{(%s)}$' % TT
         AxFormat = FormatStrFormatter('%.4f')

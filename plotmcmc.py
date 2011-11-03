@@ -11,7 +11,6 @@ from matplotlib.ticker import FormatStrFormatter,MaxNLocator
 from matplotlib.font_manager import fontManager, FontProperties
 from matplotlib.gridspec import GridSpec
 
-
 def rangeMidpoints(x):
     """
     compute and return list of mid-points
@@ -29,7 +28,7 @@ def return1Dfrom2D(arr2D):
     return 1D array from a 2D array
     """
     
-    arr1D =  arr2D.reshape(-1) 
+    arr1D =  arr2D.reshape(-1)
     return arr1D
 
 def singleJC(data1,data2):
@@ -144,6 +143,11 @@ def axisTicks(rg0,rg1):
     return tuple([0.75*rg0+0.25*rg1,0.25*rg0+0.75*rg1])
 
 def subID(Coord,Nx,Ny):
+    """ Returns subplot ID number given x,y
+    grid coordinates for a x= left-to-right, y=top-to-bottom 
+    coordinate system.
+    """
+    
     x = Coord[0]
     y = Coord[1]
     TotalPlots = Nx*Ny
@@ -152,12 +156,37 @@ def subID(Coord,Nx,Ny):
     plotID = flipy*Nx+(flipx+1)
     
     return plotID
-    
 
+def SimplifyGrid(xp,yp):
+    """
+    Given two lists of parameters, this function outputs
+    the "best" possible grid configuration for triplot.
+    xp and yp are expected to go from left-to-right and
+    top-to-bottom respectively.
+    """
+    
+    xpD = {}
+    ypD = {}
+    for i in range(len(xp)):
+        xpD[i] = xp[i]
+    for i in range(len(yp)):
+        ypD[i] = yp[i]
+    #xp = sorted(xp)
+    #yp = sorted(yp)
+    GridDict = {}
+    for ix in xpD.keys():
+        go = True
+        for iy in ypD.keys():
+            if xpD[ix] == ypD[iy]:
+                go = False
+            if go:
+                GridDict[(ix,iy)] = (xpD[ix],ypD[iy])
+
+    return GridDict
+    
 class triplot:
 
     def __init__(self,GridDict,MCMCFile,xp,yp):
-        
         
         maxY = 0
         maxX = 0
@@ -191,7 +220,7 @@ class triplot:
                                  'axisTicks':None,\
                                  'axisRange':None}
  
-    def addFits(self,Label,parDict,**kwargs):
+    def addFits(self,Label,params,**kwargs):
         
         mkt = 'o'
         mkc = 'r'
@@ -211,7 +240,7 @@ class triplot:
             else:
                 pass
         
-        self.Fits[Label] = {'dict':parDict,\
+        self.Fits[Label] = {'dict':params,\
                             'mkt':mkt,\
                             'mkc':mkc,\
                             'UseErr':UseErr}
@@ -237,20 +266,20 @@ class triplot:
     def initPlots(self,**kwargs):
         
         UseHist = False
-        bins = 15
+        hbins = 15
         DataDict = {}
         for key in kwargs:
             if key.lower() == 'hist':
                 UseHist = kwargs[key]
-            if key.lower() == 'histbins':
-                bins = kwargs[key]
+            if key.lower() == 'binhist':
+                hbins = long(kwargs[key])
             if key.lower() == 'data':
                 DataDict = kwargs[key]
             else:
                 for par in self.parList:
                     DataDict[par] = read1parMCMC(self.DataFile,par)
         
-        self.bins = bins
+        self.hbins = hbins
         self.UseHist = UseHist
         self.DataDict = DataDict
         if self.UseHist:
@@ -286,17 +315,26 @@ class triplot:
             
     def makePlot(self, **kwargs):
         
-        Print2File = False
-        FileName = None
+        PlotFile = False
         fSzX = 16
         fSzY = 16
+        legfsz = 16
+        loctup=(self.GridNX-1,self.GridNY-1)
         for key in kwargs:
-            if key.startswith('plotfile'):
-                Print2File = True
+            if key.lower().startswith('plotfile'):
+                PlotFile = True
                 FileName = kwargs[key]
-        
-        #print self.PlotGrid
+            if key.lower().startswith('fsizex'):
+                fSzX = long(kwargs[key])
+            if key.lower().startswith('fsizey'):
+                fSzY = long(kwargs[key])
+            if key.lower().startswith('legfontsz'):
+                legfsz = long(kwargs[key])
+            if key.lower().startswith('legloc'):
+                loctup = kwargs[key]
+
         for Grid in self.GridDict.keys():
+            LegMade = False
             if self.GridDict[Grid] != None:
                 par_x = self.GridDict[Grid][0]
                 par_y = self.GridDict[Grid][1]
@@ -305,11 +343,29 @@ class triplot:
                 plotID = subID(Grid,self.GridNX,self.GridNY)
                 plt.subplot(self.GridNX,self.GridNY,plotID)
                 singleJC(d_x,d_y)
+                #plot Fits if added:
+                if hasattr(self,'Fits'):
+                    leglab = []
+                    LegFont = FontProperties(size=16)
+                    for key in self.Fits.keys():
+                        xarr = [-9e3,self.Fits[key]['dict'][par_x]['value']]
+                        yarr = [-9e3,self.Fits[key]['dict'][par_y]['value']]
+                        xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
+                        yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
+                        mkt = self.Fits[key]['mkt']
+                        mkc = self.Fits[key]['mkc']
+                        plt.plot(xarr,yarr,mkt+mkc)
+                        if self.Fits[key]['UseErr']:
+                            plt.errorbar(xarr,yarr,xerr=xerrArr,\
+                                         yerr=yerrArr,fmt=None,\
+                                         marker=None)
+                        if not LegMade:
+                            leglab.append(key)
+                    LegMade = True
+
+                #Axis Formatting
                 plt.xlim(self.parDict[par_x]['range'])
                 plt.ylim(self.parDict[par_y]['range'])
-                plt.xlabel(self.parDict[par_x]['label'])
-                plt.ylabel(self.parDict[par_y]['label'])
-                #print par_x, par_y
                 plt.setp(plt.gca(),\
                          xticks=self.parDict[par_x]['axisTicks'],\
                          yticks=self.parDict[par_y]['axisTicks'])
@@ -326,10 +382,18 @@ class triplot:
                 else:
                     plt.setp(plt.gca(),yticklabels=[])
         
+        
+        if hasattr(self,'Fits'):
+            plotID = subID((0,0),self.GridNX,self.GridNY)
+            plt.subplot(self.GridNX,self.GridNY,plotID)
+            plt.legend(tuple(leglab),\
+                       numpoints=1,\
+                       loc='upper left',\
+                       prop=LegFont,\
+                       bbox_to_anchor=loctup)
+
+        #check for Histogram plotting
         if self.UseHist:
-            #print self.GridNX, self.GridNY
-            #for key in self.HistDict.keys(): print key, self.HistDict[key]
-            #sys.exit()
             for Grid in self.HistDict.keys():
                 if self.HistDict[Grid] != None:
                     par = self.HistDict[Grid][0]
@@ -337,32 +401,42 @@ class triplot:
                     d = {par:self.DataDict[par]}
                     plotID = subID(Grid,self.GridNX,self.GridNY)
                     plt.subplot(self.GridNX,self.GridNY,plotID)
-                    plt.hist(d[par],bins=self.bins,orientation=ori)
+                    plt.hist(d[par],bins=self.hbins,orientation=ori)
                     tickForm = FormatStrFormatter('%.2e')
-                    if ori.startswith('vert'): 
+                    if ori.startswith('vert'):
                         plt.setp(plt.gca(),xticklabels=[])
                         plt.setp(plt.gca().yaxis.set_major_formatter(tickForm))
                         tickLoc = MaxNLocator(nbins=4,prune='both')
                         plt.setp(plt.gca().yaxis.set_major_locator(tickLoc))
+                        plt.ylabel('Number')
                         for tick in plt.gca().yaxis.get_major_ticks():
-                            tick.label1On = False
-                            tick.label2On = True
-                        plt.xlim(self.parDict[par]['range'])
-                        for tick in plt.gca().yaxis.get_major_ticks():
-                            tick.label1On = False
-                            tick.label2On = True
+                            if Grid[0] == 0:
+                                tick.label1On = True
+                                tick.label2On = False
+                            else:
+                                tick.label1On = False
+                                tick.label2On = True
+                                plt.gca().yaxis.set_label_position('right')
                         plt.xlim(self.parDict[par]['range'])
                     else:
                         plt.setp(plt.gca().xaxis.set_major_formatter(tickForm))
                         tickLoc = MaxNLocator(nbins=2,prune='both')
                         plt.setp(plt.gca().xaxis.set_major_locator(tickLoc))
                         plt.setp(plt.gca(),yticklabels=[])
+                        plt.xlabel('Number')
                         for tick in plt.gca().xaxis.get_major_ticks():
-                            tick.label1On = False
-                            tick.label2On = True
+                            if Grid[1] == 0:
+                                tick.label1On = True
+                                tick.label2On = False
+                            else:
+                                tick.label1On = False
+                                tick.label2On = True
                         plt.ylim(self.parDict[par]['range'])
 
         plt.subplots_adjust(hspace=0)
         plt.subplots_adjust(wspace=0)
         
-        plt.show()
+        if PlotFile:
+            plt.savefig(FileName)
+        else:
+            plt.show()
