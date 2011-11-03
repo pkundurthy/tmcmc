@@ -6,6 +6,9 @@ from tqessential import getTags, computePeriod
 import MTQ_2011
 import numpy as np
 import os
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
     """ print a file with Derived parameters from the MCMC ensemble. """

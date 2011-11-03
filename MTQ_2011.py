@@ -1,6 +1,9 @@
 import tqessential as tqe
 import numpy as np
-
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
+    
 def MTQ_multidepth_tduration(ModelParams,ObservedData):
     """
     Computes model lightcurves given parameters and Observed times for multiple transits.

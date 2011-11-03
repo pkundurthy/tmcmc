@@ -3,7 +3,10 @@ from mcmc import ApplyBounds, DetrendData
 from iomcmc import PrintModelParams
 import numpy as np
 import cPickle as pickle
-
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
+    
 def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
     """ Designed to run Minuit on tmcmc format Data dictionaries """
     

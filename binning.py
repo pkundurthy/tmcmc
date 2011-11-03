@@ -1,6 +1,9 @@
 """ Contains various functions needed for the lightcurve binning process. """
 
 import numpy as np
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def MedianMeanOutlierRejection(indata, cutoff, choice):
     """ Computes an outlier rejected mean or median of a data array.

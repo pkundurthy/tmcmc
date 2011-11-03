@@ -1,6 +1,5 @@
 
 
-
 def String2Bool(inStr):
     """ Returns String representations to Boolean type. """
     
@@ -14,3 +13,9 @@ def String2IntFloat(inStr):
     except ValueError:
         ret = float(inStr)
     return ret
+
+def format(str, form):
+    if form == 'n':
+        form ='d'
+    return eval(' \'%s%s\' %s (%s)' % ('%', form, '%', str))
+    

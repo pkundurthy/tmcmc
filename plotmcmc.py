@@ -1,11 +1,16 @@
 import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 import numpy as np
 import scipy
 import scipy.ndimage
 from iopostmcmc import isNonParam, read1parMCMC, getPars
 from iomcmc import ReadStartParams, checkFileExists
 from binning import MedianMeanOutlierRejection
-import matplotlib
+from matplotlib import rc
+rc('text',usetex=True)
+rc('font',family='serif')
+import matplotlib.colors
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter,MaxNLocator
 from matplotlib.font_manager import fontManager, FontProperties
@@ -266,8 +271,11 @@ class triplot:
     def initPlots(self,**kwargs):
         
         UseHist = False
-        hbins = 15
+        hbins = 25
         DataDict = {}
+        for par in self.parList:
+            DataDict[par] = read1parMCMC(self.DataFile,par)[par]
+            
         for key in kwargs:
             if key.lower() == 'hist':
                 UseHist = kwargs[key]
@@ -275,13 +283,11 @@ class triplot:
                 hbins = long(kwargs[key])
             if key.lower() == 'data':
                 DataDict = kwargs[key]
-            else:
-                for par in self.parList:
-                    DataDict[par] = read1parMCMC(self.DataFile,par)
-        
+                        
         self.hbins = hbins
         self.UseHist = UseHist
         self.DataDict = DataDict
+        
         if self.UseHist:
             self.GridNX += 1
             self.GridNY += 1
@@ -319,7 +325,7 @@ class triplot:
         fSzX = 16
         fSzY = 16
         legfsz = 16
-        loctup=(self.GridNX-1,self.GridNY-1)
+        loctup=(self.GridNX-1,self.GridNY)
         for key in kwargs:
             if key.lower().startswith('plotfile'):
                 PlotFile = True
@@ -364,21 +370,26 @@ class triplot:
                     LegMade = True
 
                 #Axis Formatting
-                plt.xlim(self.parDict[par_x]['range'])
-                plt.ylim(self.parDict[par_y]['range'])
-                plt.setp(plt.gca(),\
-                         xticks=self.parDict[par_x]['axisTicks'],\
+                plt.xlim(self.parDict[par_x]['axisRange'])
+                plt.ylim(self.parDict[par_y]['axisRange'])
+                if self.parDict[par_x]['axisTicks'] != None:
+                    plt.setp(plt.gca(),\
+                         xticks=self.parDict[par_x]['axisTicks'])
+                if self.parDict[par_y]['axisTicks'] != None:
+                    plt.setp(plt.gca(),\
                          yticks=self.parDict[par_y]['axisTicks'])
                 if Grid[1] == 0:
                     plt.xlabel(self.parDict[par_x]['label'],\
                                fontsize=fSzX)
-                    plt.setp(plt.gca().xaxis.set_major_formatter(self.parDict[par_x]['axForm']))
+                    if self.parDict[par_x]['axForm'] != None:
+                        plt.setp(plt.gca().xaxis.set_major_formatter(self.parDict[par_x]['axForm']))
                 else:
                     plt.setp(plt.gca(),xticklabels=[])
                 if Grid[0] == 0:
                     plt.ylabel(self.parDict[par_y]['label'],\
                                fontsize=fSzY)
-                    plt.setp(plt.gca().yaxis.set_major_formatter(self.parDict[par_y]['axForm']))
+                    if self.parDict[par_y]['axForm'] != None:
+                        plt.setp(plt.gca().yaxis.set_major_formatter(self.parDict[par_y]['axForm']))
                 else:
                     plt.setp(plt.gca(),yticklabels=[])
         
@@ -408,7 +419,7 @@ class triplot:
                         plt.setp(plt.gca().yaxis.set_major_formatter(tickForm))
                         tickLoc = MaxNLocator(nbins=4,prune='both')
                         plt.setp(plt.gca().yaxis.set_major_locator(tickLoc))
-                        plt.ylabel('Number')
+                        plt.ylabel(r'Number')
                         for tick in plt.gca().yaxis.get_major_ticks():
                             if Grid[0] == 0:
                                 tick.label1On = True
@@ -417,13 +428,13 @@ class triplot:
                                 tick.label1On = False
                                 tick.label2On = True
                                 plt.gca().yaxis.set_label_position('right')
-                        plt.xlim(self.parDict[par]['range'])
+                        plt.xlim(self.parDict[par]['axisRange'])
                     else:
                         plt.setp(plt.gca().xaxis.set_major_formatter(tickForm))
                         tickLoc = MaxNLocator(nbins=2,prune='both')
                         plt.setp(plt.gca().xaxis.set_major_locator(tickLoc))
                         plt.setp(plt.gca(),yticklabels=[])
-                        plt.xlabel('Number')
+                        plt.xlabel(r'Number')
                         for tick in plt.gca().xaxis.get_major_ticks():
                             if Grid[1] == 0:
                                 tick.label1On = True
@@ -431,7 +442,7 @@ class triplot:
                             else:
                                 tick.label1On = False
                                 tick.label2On = True
-                        plt.ylim(self.parDict[par]['range'])
+                        plt.ylim(self.parDict[par]['axisRange'])
 
         plt.subplots_adjust(hspace=0)
         plt.subplots_adjust(wspace=0)

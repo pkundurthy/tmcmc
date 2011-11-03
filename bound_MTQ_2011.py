@@ -1,6 +1,9 @@
 import numpy as np
 import tqessential as tqe
-from MTQ_2011 import * 
+from MTQ_2011 import *
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def bound_v1_2011(ModelParams):
     """ checks if 0 < v1 < 1 """

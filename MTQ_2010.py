@@ -1,6 +1,9 @@
 
 import numpy as np
 import tmcmc.tqessential as tqe
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def MultiTransitQuick_circular_rprs_vm(ModelParams,ObservedData):
     """ Computes model lightcurves given parameters and Observed times for multiple transits. This _rprs_vm version is for fitting the planet-to-star radius ratio squared (Rp/Rs)**2. This is the version to use for multi-wavelength datasets. 'vm' indicated we are using the linear combination of the Mandel & Agol (2002) limb-darkening coefficients. 

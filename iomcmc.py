@@ -2,7 +2,9 @@
 from tmcmc.misc import String2IntFloat
 from tmcmc.misc import String2Bool
 import os, sys
-
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
+    
 def MakeModelParsContinue(par0,par1,ModelPars):
     """ Makes a ModelParam dictionary from lines of an incompelte MCMC file."""
 

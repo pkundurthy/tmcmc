@@ -5,6 +5,9 @@ from matplotlib.font_manager import fontManager, FontProperties
 from plotmcmc import getRange, axisTicks
 from tmcmc.iomcmc import ReadStartParams
 import numpy as np
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 
 def returnTsub(TSTAMP):
@@ -87,7 +90,7 @@ def PrepTransitData(DataFile,parlist,BestFitPar):
         d = x[par]
         parData[par] = TData(d,par,BestFitPar[par]['value'])
         rg0,rg1 = getRange(parData[par])
-        axisData[par] = {'range':(rg0,rg1),'axisTicks':axisTicks(rg0,rg1)}
+        axisData[par] = {'axisRange':(rg0,rg1),'axisTicks':axisTicks(rg0,rg1)}
         
     return parData, axisData
     

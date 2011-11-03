@@ -2,6 +2,8 @@ from iomcmc import *
 import numpy as np
 import myboundfunc
 import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def MakeMCMCheader(ModelParams):
     """ Writes a fresh header with parameter names into an MCMC file. """

@@ -2,6 +2,9 @@
 
 import numpy as np
 import tmcmc.binning as binning
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def ReadData(file):
     """ Read header from datafiles. Datafiles (file) are those files output by the 

@@ -5,7 +5,9 @@ from iopostmcmc import readMCMChdr, read1parMCMC
 from iopostmcmc import isNonParam
 from matplotlib import pyplot as plt
 import sys
-
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
+    
 def covcorStats(File, FileTag):
     """ Given MCMC parameters, this function computes
         the covariance between parameters, the pearson's correlation 

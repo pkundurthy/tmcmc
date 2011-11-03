@@ -5,7 +5,9 @@ from mcmc import DetrendData
 import numpy as np
 import scipy
 import sys
-
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
+    
 def readStatHeaders(FileName):
     """
         read the column and row parameter names from stat file

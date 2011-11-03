@@ -2,6 +2,9 @@
 """ Contains the functions that set the bounds for various parameters in the model function. The user must add bounding functions suited to for their needs to this file."""
 import numpy as np
 import tqessential as tqe
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def bound_u1plusu2_2010(ModelParams):
     """ checks if  0 < u1 + u2 < 1 """

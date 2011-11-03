@@ -2,6 +2,9 @@
 
 import numpy as np
 import os
+import sys
+if sys.version_info[1] < 6:
+    from tmcmc.misc import format
 
 def ekepler(m,e):
     """ 
