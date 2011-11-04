@@ -14,7 +14,7 @@ import matplotlib.colors
 from matplotlib import pyplot as plt
 from matplotlib.ticker import FormatStrFormatter,MaxNLocator
 from matplotlib.font_manager import fontManager, FontProperties
-from matplotlib.gridspec import GridSpec
+#from matplotlib.gridspec import GridSpec
 
 def rangeMidpoints(x):
     """
@@ -392,7 +392,6 @@ class triplot:
                         plt.setp(plt.gca().yaxis.set_major_formatter(self.parDict[par_y]['axForm']))
                 else:
                     plt.setp(plt.gca(),yticklabels=[])
-        
         
         if hasattr(self,'Fits'):
             plotID = subID((0,0),self.GridNX,self.GridNY)

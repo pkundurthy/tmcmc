@@ -1,4 +1,4 @@
- Last Updated: 2011-Nov-01 03:08:30
+ Last Updated: 2011-Nov-03 00:20:36
 
 
 + myderivedfunc.py
@@ -44,6 +44,7 @@
 + misc.py
      String2Bool(inStr):
      String2IntFloat(inStr):
+     format(str, form):
 
 + iomcmc.py
      MakeModelParsContinue(par0,par1,ModelPars):
@@ -130,6 +131,8 @@
      JC(par1,par2,dataMCMC):
      getRange(d,**kwargs):
      axisTicks(rg0,rg1):
+     subID(Coord,Nx,Ny):
+     SimplifyGrid(xp,yp):
 
 + binning.py
      MedianMeanOutlierRejection(indata, cutoff, choice):
