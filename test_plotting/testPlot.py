@@ -17,8 +17,8 @@ MCMCGrid2 = {(0,2):(xp[0],yp[2]),\
 MCMCGrid = tmcmc.plotmcmc.SimplifyGrid(xp,yp)
 
 # MCMC file
-DataFile = 'test1.mcmc'
-#DataFile = 'MCMC4plot.mcmc'
+#DataFile = 'test1.mcmc'
+DataFile = 'MCMC4plot.mcmc'
 
 # Prepare the transit data for the MCMC plots
 # modify T0 data to preferred units
@@ -26,6 +26,7 @@ DataFile = 'test1.mcmc'
 AllPars = list(set(xp+yp))
 par1 = ReadStartParams('FIT1.par')
 par2 = ReadStartParams('FIT2.par')
+parErr = tmcmc.iopostmcmc.readErrorFile('Errors.par')
 
 # the 3 dictionaries initiated below are useful for setting 
 # axis Formats, labels etc...
@@ -33,20 +34,24 @@ parLabelFormat = tmcmc.plotTransit.TransitParFormat(AllPars)
 parData, axisProperties = tmcmc.plotTransit.PrepTransitData(DataFile,AllPars,par1)
 
 #also adjust the parameter values from the fits
-par1new = par1
-for par in par1.keys():
-    if par.startswith('T0'):
-        par2[par]['value'] = (par2[par]['value'] -par1[par]['value'])*86400e0
-        par2[par]['step'] = (par2[par]['step'])*86400e0
-        par1new[par]['value'] = (par1new[par]['value'] -par1[par]['value'])*86400e0
-        par1new[par]['step'] = (par1new[par]['step'])*86400e0
+par2 = tmcmc.plotTransit.parTimeDay2Sec(par2,par1)
+parErr = tmcmc.plotTransit.parErr4Plot(parErr)
+parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(parErr,par1)
+par1new = par1.copy()
+par1new = tmcmc.plotTransit.parTimeDay2Sec(par1new,par1)
 
+#for par in parErrPlot.keys():
+    #print 'mcmc', par1new[par]['value'], 'errM', parErrPlot[par]['value'], 'Minuit', par2[par]['value']
+    #print 'errM', parErrPlot[par]['step'], 'Minuit', par2[par]['step']
+
+#sys.exit()
 # Initiate Figures
 p = tmcmc.plotmcmc.triplot(MCMCGrid,DataFile,xp,yp)
 
 # add Fits to plot
 p.addFits('Minuit',par2,markertype='o',markercolor='b',UseError=True)
-p.addFits('MCMC',par1new,markertype='o',markercolor='k',UseError=False)
+p.addFits('MCMC',parErrPlot,markertype='o',markercolor='k',UseError=False)
+#p.addFits('MCMC',par1new,markertype='o',markercolor='k',UseError=False)
 
 # optional changes to parameter labels
 p.generateAxisText(parformat=parLabelFormat)
@@ -57,6 +62,6 @@ p.generateAxisProperties(axisform=axisProperties)
 # send parameters into plotter and make plot
 p.initPlots(data=parData,hist=True,binhist=25)
 
-p.makePlot()
-#plotfile='MCMCtest.eps'
-#p.makePlot(plotfile=plotfile,fsizex=14,fsizey=14,legfontsz=14,legloc=(3,4))
+#p.makePlot()
+plotfile='MCMCtest.eps'
+p.makePlot(plotfile=plotfile,fsizex=14,fsizey=14,legfontsz=14,legloc=(3,4))

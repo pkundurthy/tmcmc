@@ -32,6 +32,22 @@ def bound_v1plusv2_2011(ModelParams):
             if v1pv2 < 0e0:
                 bound = False
     return bound
+            
+def bound_uvalues_2011(ModelParams):
+    """ checks if u values are within bounds between 0 and 1 """
+
+    bound = True
+    Tags = tqe.getTags(ModelParams)
+    for par in ModelParams.keys():
+        if par.startswith('D.'):
+            parstrip = par.strip('D.')
+            # gets D, v1, and v2 for a given filter
+            D, v1, v2 = MTQ_FilterParams(parstrip,Tags,ModelParams)
+            u1, u2 = tqe.LDC_v2u(v1,v2)
+            if u1 <= 0 or u1 > 1 or u2 <= 0 or u2 > 1:
+                bound = False
+    
+    return bound
 
 def bound_D_2011(ModelParams):
     """ checks if D > 0 """

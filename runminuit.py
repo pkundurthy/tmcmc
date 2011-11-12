@@ -21,6 +21,7 @@ def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tol
     dumpfile4 = open('dump4','wb')
     dumpfile5 = open('dump5','wb')
     dumpfile6 = open('dump6','wb')
+    print startchi2
     pickle.dump(FunctionName,dumpfile1,-1)
     pickle.dump(ObservedData,dumpfile2,-1)
     pickle.dump(ModelParams,dumpfile3,-1)

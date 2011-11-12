@@ -2,6 +2,7 @@
 from iomcmc import ReadHeaderMCMC, ReadMCMCline, ReadDetrendFile
 from iomcmc import PrintModelParams, ReadStartParams
 from mcmc import DetrendData
+from tmcmc.misc import String2Bool
 import numpy as np
 import scipy
 import sys
@@ -158,7 +159,7 @@ def readMCMC(filename):
 
     return out_data
    
-def read1parMCMC(filename,parname):
+def read1parMCMC(filename,parname,**kwargs):
     """
         Reads a single column of data from an MCMC file 
         and store it into a dictionary.
@@ -169,6 +170,11 @@ def read1parMCMC(filename,parname):
             data dictionary - with MCMC and related stats
      """
      
+    DFlag = False
+    for key in kwargs:
+        if key.lower().startswith('derive'):
+            DFlag = kwargs[key]
+            
     out_data = {}
     hdrkeys = readMCMChdr(filename)
     found = False
@@ -182,9 +188,9 @@ def read1parMCMC(filename,parname):
             continue
 
     if not found:
-            print hdrkeys
-            print 'Parameter ', parname, ' not found'
-            sys.exit()
+        print hdrkeys
+        print 'Parameter ', parname, ' not found'
+        sys.exit()
     
     mcmcFile = open(filename,'r')
     mcmcFile = mcmcFile.readlines()
@@ -193,9 +199,10 @@ def read1parMCMC(filename,parname):
             data_line = ReadMCMCline(line,hdrkeys)
             out_data[parname].append(data_line[parname])
             out_data['istep'].append(data_line['istep'])
-            out_data['chi1'].append(data_line['chi1'])
-            out_data['frac'].append(data_line['frac'])
-            out_data['acr'].append(data_line['acr'])
+            if not DFlag:
+                out_data['chi1'].append(data_line['chi1'])
+                out_data['frac'].append(data_line['frac'])
+                out_data['acr'].append(data_line['acr'])
 
     return out_data
             
@@ -259,6 +266,26 @@ def makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile
                 ModelParams[par]['open'] = True
 
     PrintModelParams(ModelParams,OutputParamFile)
+
+def readErrorFile(errorFile):
+    """
+    
+    """
+    
+    errFile = open(errorFile,'r')
+    errFile = errFile.readlines()
+    
+    errData = {}
+    for line in errFile:
+        if not line.startswith('#'):
+            dl = map(str, line.split('|'))
+            errData[dl[0].strip()] = \
+            {'value':float(dl[1].strip()),\
+             'lower':float(dl[2].strip()),\
+             'upper':float(dl[3].strip()),\
+             'useSingle':String2Bool(dl[4].strip())}
+    
+    return errData
 
 def printErrors(MCMCfile,BestfitFile,OutputFile):
     """ Gets data out from the MCMC data file and the BESTFIT parameters file and prints uncertainties """

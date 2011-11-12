@@ -93,7 +93,23 @@ def PrepTransitData(DataFile,parlist,BestFitPar):
         axisData[par] = {'axisRange':(rg0,rg1),'axisTicks':axisTicks(rg0,rg1)}
         
     return parData, axisData
+
+def parErr4Plot(parErr):
+    """
+    convert error dict to one useable by plotmcmc
+    """
     
+    outPar = {}
+    for par in parErr.keys():
+        if parErr[par]['useSingle']:
+            err = max(parErr[par]['lower'],parErr[par]['upper'])
+            parErr[par]['lower'] = err
+            parErr[par]['upper'] = err
+        outPar[par] = {'value':parErr[par]['value'],\
+                       'step':[parErr[par]['lower'],\
+                       parErr[par]['upper']]}
+    return outPar
+
 def robust1sigma(x):
     """
         return 1-sigma
@@ -104,8 +120,24 @@ def robust1sigma(x):
     sigma = (x[.8415*npts]-x[.1585*npts])/2e0
     
     return sigma
-            
-            
+
+def parTimeDay2Sec(pars,bestFitPars):
+    """
+    change times in parameters from days to seconds
+    """
+    
+    for par in pars.keys():
+        if par.startswith('T0'):
+            pars[par]['value'] = (pars[par]['value'] -\
+            bestFitPars[par]['value'])*86400e0
+            if isinstance(pars[par]['step'],list):
+                for i in range(len(pars[par]['step'])):
+                    pars[par]['step'][i] = pars[par]['step'][i]*86400e0
+            else:
+                pars[par]['step'] = (pars[par]['step'])*86400e0
+
+    return pars
+
 def makeStatLabels(Stats,DataFile):
     """
     

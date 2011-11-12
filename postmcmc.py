@@ -8,11 +8,16 @@ import sys
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
     
-def covcorStats(File, FileTag):
+def covcorStats(File, FileTag, **kwargs):
     """ Given MCMC parameters, this function computes
         the covariance between parameters, the pearson's correlation 
         coefficient and spearman's rank correlation.
     """
+    
+    DFlag = False
+    for key in kwargs:
+        if key.lower().startswith('derive'):
+            DFlag = kwargs[key]
     
     stats = {}
     OutFileObject_COV = open(FileTag+'_COV.data','w')
@@ -37,8 +42,8 @@ def covcorStats(File, FileTag):
                 if isNonParam(key2):
                     pass
                 else:
-                    d1 = read1parMCMC(File,key1)
-                    d2 = read1parMCMC(File,key2)
+                    d1 = read1parMCMC(File,key1,derived=DFlag)
+                    d2 = read1parMCMC(File,key2,derived=DFlag)
                     if passCount == 0: topline = topline+5*' '+key2
                     cov = np.cov(d1[key1],d2[key2])
                     pcor = scipy.stats.pearsonr(np.array(d1[key1]),np.array(d2[key2]))

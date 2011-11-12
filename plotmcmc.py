@@ -352,21 +352,33 @@ class triplot:
                 #plot Fits if added:
                 if hasattr(self,'Fits'):
                     leglab = []
+                    legmark = []
                     LegFont = FontProperties(size=16)
                     for key in self.Fits.keys():
                         xarr = [-9e3,self.Fits[key]['dict'][par_x]['value']]
                         yarr = [-9e3,self.Fits[key]['dict'][par_y]['value']]
-                        xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
-                        yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
+                        if isinstance(self.Fits[key]['dict'][par_x]['step'],list):
+                            xerrArr0 = [0,self.Fits[key]['dict'][par_x]['step'][0]]
+                            xerrArr1 = [0,self.Fits[key]['dict'][par_x]['step'][1]]
+                            yerrArr0 = [0,self.Fits[key]['dict'][par_y]['step'][0]]
+                            yerrArr1 = [0,self.Fits[key]['dict'][par_y]['step'][1]]
+                            xerrArr = [xerrArr0,xerrArr1]
+                            yerrArr = [yerrArr0,yerrArr1]
+                            #print xerrArr
+                            #print yerrArr
+                        else:
+                            xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
+                            yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
                         mkt = self.Fits[key]['mkt']
                         mkc = self.Fits[key]['mkc']
-                        plt.plot(xarr,yarr,mkt+mkc)
+                        mark = plt.plot(xarr,yarr,marker=mkt,markerfacecolor=mkc,linestyle='None')
                         if self.Fits[key]['UseErr']:
                             plt.errorbar(xarr,yarr,xerr=xerrArr,\
                                          yerr=yerrArr,fmt=None,\
-                                         marker=None)
+                                         marker=mkt)
                         if not LegMade:
                             leglab.append(key)
+                            legmark.append(mark)
                     LegMade = True
 
                 #Axis Formatting
@@ -396,7 +408,8 @@ class triplot:
         if hasattr(self,'Fits'):
             plotID = subID((0,0),self.GridNX,self.GridNY)
             plt.subplot(self.GridNX,self.GridNY,plotID)
-            plt.legend(tuple(leglab),\
+            plt.legend(tuple(legmark),\
+                       tuple(leglab),\
                        numpoints=1,\
                        loc='upper left',\
                        prop=LegFont,\

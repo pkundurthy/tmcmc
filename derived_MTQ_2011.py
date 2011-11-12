@@ -1,6 +1,7 @@
 
 from iopostmcmc import readMCMChdr
 from iomcmc import ReadStartParams, ReadMCMCline
+from iomcmc import PrintModelParams
 from tqessential import LDC_v2u, computeRpRs
 from tqessential import getTags, computePeriod
 import MTQ_2011
@@ -85,6 +86,53 @@ def returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
     DerivedLine = DerivedLine+'|'+str(format(istep,'.0f'))+'|:'
     
     return DerivedLine, keylist
+
+def printDerivedParFile_MTQ_2011(ParFile,OutParFile):
+    """
+    print the derived parameters in the format of the parameter file
+    """
+    
+    ModelParams = ReadStartParams(ParFile)
+    derived = {}
+    
+    Period = computePeriod(ModelParams)
+    derived['Period'] = {'value':Period,'printformat':'.9f','open':True,'step':0.0}
+    RefFilt = ModelParams['RefFilt']['printformat']
+
+    # get Filter and Transit time tags
+    Tags = getTags(ModelParams)
+    
+    # compute parameters used to compute lightcurve using the reference filter
+    Dref, v1ref, v2ref = MTQ_2011.MTQ_FilterParams(RefFilt,Tags,ModelParams)
+    u1ref, u2ref = LDC_v2u(v1ref,v2ref)
+
+    tT = ModelParams['tT']['value']
+    tG = ModelParams['tG']['value']
+    
+    TransitRef = MTQ_2011.MTQ_getDerivedParams(Dref,tT,tG,u1ref,u2ref,Period)
+    #print TransitRef
+    derived['inc'] = {'value':TransitRef['inc']*180e0/np.pi,'printformat':'.4f','open':True,'step':0.0}
+    derived['b'] = {'value':TransitRef['b'],'printformat':'.6f','open':True,'step':0.0}
+    derived['aRs'] = {'value':TransitRef['aRs'],'printformat':'.6f','open':True,'step':0.0}
+    derived['velRs'] = {'value':TransitRef['velRs'],'printformat':'.6f','open':True,'step':0.0}
+    derived['rho_star'] = {'value':TransitRef['rho_star'],'printformat':'.6f','open':True,'step':0.0}
+    derived['RpRs'+'.'+ModelParams['RefFilt']['printformat']] = \
+    {'value':TransitRef['RpRs'],'printformat':'.9f','open':True,'step':0.0}
+    
+    for key in ModelParams.keys():
+        if key.startswith('T0'):
+            split_TT = map(str,key.split('.'))
+            transit_tag = split_TT[1].strip()
+    
+            # compute D, v1, v2 and then u1 and u2 for a given transit tag
+            D, v1, v2 = MTQ_2011.MTQ_FilterParams(transit_tag,Tags,ModelParams)
+            u1, u2 = LDC_v2u(v1,v2)
+            RpRs = computeRpRs(u1,u2,tT,tG,D)
+            filterD = filterMatchD(transit_tag,Tags,ModelParams)
+            #print filterD
+            derived['RpRs'+'.'+filterD] = {'value':RpRs,'printformat':'.9f','open':True,'step':0.0}
+    
+    PrintModelParams(derived,OutParFile)
     
 def printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
     """ print a file with Derived parameters from the MCMC ensemble. """
