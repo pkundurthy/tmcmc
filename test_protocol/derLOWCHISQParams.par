@@ -1,0 +1,9 @@
+# Parname | value | step | open | printformat 
+aRs  |  2.530648 | 0.000000 | True | .6f
+RpRs.T2  |  0.102482333 | 0.000000000 | True | .9f
+rho_star  |  0.482643 | 0.000000 | True | .6f
+Period  |  0.797093641 | 0.000000000 | True | .9f
+RpRs.T1.T2.T3  |  0.102482333 | 0.000000000 | True | .9f
+b  |  0.186564 | 0.000000 | True | .6f
+velRs  |  19.948137 | 0.000000 | True | .6f
+inc  |  85.7722 | 0.0000 | True | .4f
