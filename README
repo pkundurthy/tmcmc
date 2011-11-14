@@ -1,4 +1,4 @@
- Last Updated: 2011-Nov-03 00:20:36
+ Last Updated: 2011-Nov-14 15:26:28
 
 
 + myderivedfunc.py
@@ -6,7 +6,7 @@
 + myfunc.py
 
 + postmcmc.py
-     covcorStats(File, FileTag):
+     covcorStats(File, FileTag, **kwargs):
      plotTrace(File1,File2, **keywords):
      autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
 
@@ -38,6 +38,7 @@
 
 + derived_MTQ_2011.py
      returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
+     printDerivedParFile_MTQ_2011(ParFile,OutParFile):
      printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
      filterMatchD(TransitTag,Tags,ModelParams):
 
@@ -80,7 +81,9 @@
      TransitParFormat(parlist):
      TData(d,parName,par1):
      PrepTransitData(DataFile,parlist,BestFitPar):
+     parErr4Plot(parErr):
      robust1sigma(x):
+     parTimeDay2Sec(pars,bestFitPars):
      makeStatLabels(Stats,DataFile):
 
 + func_example.py
@@ -99,9 +102,10 @@
      readMCMChdr(filename):
      getPars(filename):
      readMCMC(filename):
-     read1parMCMC(filename,parname):
+     read1parMCMC(filename,parname,**kwargs):
      cropMCMC(mcmcfile,outfile,cropperc):
      makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):
+     readErrorFile(errorFile):
      printErrors(MCMCfile,BestfitFile,OutputFile):
      readDTfile(file,NuisONOFF):
      generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
@@ -160,6 +164,7 @@
 + bound_MTQ_2011.py
      bound_v1_2011(ModelParams):
      bound_v1plusv2_2011(ModelParams):
+     bound_uvalues_2011(ModelParams):
      bound_D_2011(ModelParams):
      bound_tT_2011(ModelParams):
      bound_tG_2011(ModelParams):
