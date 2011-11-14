@@ -329,7 +329,6 @@ def computeRpRs(u1,u2,tT,tG,D):
     """
     
     a5 = -1.0e0*(u1+2.0e0*u2)/(u2*np.sqrt(tT/tG))
-    print tT, tG, u1, u2
     a4 = -1.0e0*(1.0e0-u1-u2)/(u2*tT/tG)
     a0 = D*(1e0-u1/3e0-u2/6e0)/(u2*tT/tG)
     RpRs = (newtraph6(0.3,a5,a4,a0))**2e0

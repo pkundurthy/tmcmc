@@ -21,7 +21,6 @@ def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tol
     dumpfile4 = open('dump4','wb')
     dumpfile5 = open('dump5','wb')
     dumpfile6 = open('dump6','wb')
-    print startchi2
     pickle.dump(FunctionName,dumpfile1,-1)
     pickle.dump(ObservedData,dumpfile2,-1)
     pickle.dump(ModelParams,dumpfile3,-1)
@@ -72,7 +71,7 @@ def f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams)
     else:
         chi2 = 1e308
         
-    #print chi2
+    print chi2
     return chi2
 
 class var_code:
