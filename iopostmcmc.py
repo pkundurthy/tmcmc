@@ -206,6 +206,35 @@ def read1parMCMC(filename,parname,**kwargs):
 
     return out_data
             
+def cropMCMCnew(mcmcfile,outfile,cropperc):
+    """ Removes the "burn-in" phase of the MCMC and writes a 
+    shortened MCMC data file 
+    """
+    
+    hdrkeys = readMCMChdr(mcmcfile)
+    Nparams = getNparams(hdrkeys)
+
+    outfileObject = open(outfile,'w')
+    mcmcfileobj = open(mcmcfile,'r')
+    mcmcfileobj = mcmcfileobj.readlines()
+    backCount = len(mcmcfileobj)-1
+    while backCount > 0:
+        line = mcmcfileobj[backCount]
+        if line.startswith('#'):
+            print >> outfileObject, line.strip('\n')
+        if not line.startswith('#'):
+            data_line = ReadMCMCline(line,hdrkeys)
+            if Nparams == 1:
+                if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
+                    print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                    print >> outfileObject, line.strip('\n')
+            if Nparams > 1:
+                if data_line['acr'] > 0.23-cropperc and data_line['acr'] < 0.23+cropperc:
+                    print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                    print >> outfileObject, line.strip('\n')
+
+    outfileObject.close()
+            
 def cropMCMC(mcmcfile,outfile,cropperc):
     """ Removes the "burn-in" phase of the MCMC and writes a 
     shortened MCMC data file 

@@ -57,6 +57,10 @@ def JC(par1,par2,dataMCMC):
     
     x = np.array(dataMCMC[par1])
     y = np.array(dataMCMC[par2])
+    mm1, sdv1, ngood1, goodindex1, badindex1 = \
+    MedianMeanOutlierRejection(x,5,'median')
+    x = x[goodindex1]
+    y = y[goodindex1]
 
     sigma_arr = np.array([1e0,2e0,3e0,4e0,5e0])
     levels = scipy.special.erf(sigma_arr/np.sqrt(2e0))
