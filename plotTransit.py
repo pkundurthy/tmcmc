@@ -6,27 +6,56 @@ from plotmcmc import getRange, axisTicks
 from tmcmc.iomcmc import ReadStartParams
 import numpy as np
 import sys
+from matplotlib import rc
+rc('text',usetex=True)
+rc('font',family='serif')
+
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
-
-def returnTsub(TSTAMP):
+def returnTsub(TSTAMP,**kwargs):
     """ For a parameter with transit time tag, 
     return latex symbol
     """
-    
+
     if TSTAMP.startswith('T'):
         Tnum = TSTAMP.strip('T').strip('0.').strip('T')
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectname = kwargs[key]
+                if objectname.lower() == 'xo2':
+                    Tnum = str(int(Tnum)-1)
+                else:
+                    pass
         Tsub = '$T_{%s}$' % Tnum
     else:
         Tsub = 'Wrong'
-        
+
     return Tsub
-    
-def TForm(parName):
+
+def Tfilter(TT,objectName):
+
+    if objectName.lower() == 'xo2':
+        if TT.startswith('T_{2}'):
+            TT = 'I-filter'
+        elif TT.startswith('T_{8}'):
+            TT = 'r\'-filter'
+    elif objectName.lower() == 'wasp2':
+        if TT.startswith('T_{1}'):
+            TT = 'I-filter'
+        elif TT.startswith('T_{8}'):
+            TT = 'r\'-filter'
+    elif objectName.lower() == 'tres3':
+        TT = 'r\'-filter'
+    elif objectName.lower() == 'gj1214':
+        TT = 'r\'-filter'
+
+    return TT
+
+def TForm(parName,**kwargs):
     
     if parName.startswith('T0'):
-        parSym = '$T_{mid}$ - '+returnTsub(parName)
+        parSym = '$T_{mid}$ - '+returnTsub(parName,**kwargs)
         AxFormat = FormatStrFormatter('%.3f')
     elif parName.startswith('D'):
         msplit = map(str,parName.split('.'))
@@ -34,7 +63,46 @@ def TForm(parName):
         for i in range(len(msplit)): 
             if i > 0: 
                 TT += returnTsub(msplit[i]).strip('$')+' '
-        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectName = kwargs[key]
+                TT = Tfilter(TT,objectName)
+            else:
+                pass
+        parSym = r'$D_{\textrm{(%s)}}$' % (TT)
+        AxFormat = FormatStrFormatter('%.4f')
+    elif parName.startswith('v'):
+        msplit = map(str,parName.split('.'))
+        TT = ''
+        for i in range(len(msplit)): 
+            if i > 0: 
+                TT += returnTsub(msplit[i]).strip('$')+' '
+
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectName = kwargs[key]
+                TT = Tfilter(TT,objectName)
+            else:
+                pass
+        symb = msplit[0][0]
+        subs = msplit[0][1]
+        parSym = r'$%s_%s{\textrm{(%s)}}$' % (symb,subs,TT)
+        AxFormat = FormatStrFormatter('%.4f')
+    elif parName.startswith('RpRs'):
+        msplit = map(str,parName.split('.'))
+        TT = ''
+        for i in range(len(msplit)): 
+            if i > 0: 
+                TT += returnTsub(msplit[i]).strip('$')+' '
+
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectName = kwargs[key]
+                TT = Tfilter(TT,objectName)
+            else:
+                pass
+        parSym = r'$(R_{p}/R_{*})_{\textrm{(%s)}}$' % (TT)
         AxFormat = FormatStrFormatter('%.4f')
     elif parName == 'tT':
         parSym = r'$\tau_{T}$'
@@ -42,29 +110,78 @@ def TForm(parName):
     elif parName == 'tG':
         parSym = r'$\tau_{G}$'
         AxFormat = FormatStrFormatter('%.4f')
-    elif parName.startswith('v'):
-        msplit = map(str,parName.split('.'))
-        TT = ''
-        for i in range(len(msplit)):
-            if i > 0: TT += returnTsub(msplit[i]).strip('$')+' '
-        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+    elif parName.startswith('aRs'):
+        parSym = r'$a/R_{*}$'
         AxFormat = FormatStrFormatter('%.4f')
+    elif parName.startswith('rho'):
+        parSym = r'$\rho_{*}$'
+        AxFormat = FormatStrFormatter('%.2f')
     else:
         parSym = parName
         AxFormat = None
         
     return {'label':parSym,'axForm':AxFormat}
-
-def TransitParFormat(parlist):
     
+def TStatForm(parName,**kwargs):
+    
+    if parName.startswith('T0'):
+        parSym = returnTsub(parName,**kwargs)
+    elif parName.startswith('D'):
+        msplit = map(str,parName.split('.'))
+        TT = ''
+        for i in range(len(msplit)):
+            if i > 0: 
+                TT += returnTsub(msplit[i],**kwargs).strip('$')+' '
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectName = kwargs[key]
+                TT = Tfilter(TT,objectName)
+            else:
+                pass
+        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+    elif parName == 'tT':
+        parSym = r'$\tau_{T}$'
+    elif parName == 'tG':
+        parSym = r'$\tau_{G}$'
+    elif parName.startswith('v'):
+        msplit = map(str,parName.split('.'))
+        TT = ''
+        for i in range(len(msplit)):
+            if i > 0: TT += returnTsub(msplit[i],**kwargs).strip('$')+' '
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectName = kwargs[key]
+                TT = Tfilter(TT,objectName)
+            else:
+                pass
+        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+    else:
+        parSym = parName
+
+    return {'label':parSym}
+
+def TransitParFormat(parlist,**kwargs):
+    """
+    """
+
     parFormDict = {}
     for par in parlist:
-        parFormDict[par] = TForm(par)
+        parFormDict[par] = TForm(par,**kwargs)
+
+    return parFormDict
+
+def TransitStatParFormat(parlist,**kwargs):
+    """
+    """
+
+    parFormDict = {}
+    for par in parlist:
+        parFormDict[par] = TStatForm(par,**kwargs)
 
     return parFormDict
 
 def TData(d,parName,par1):
-    
+
     if parName.startswith('T0'):
         x = ((np.array(d) - par1)*86400e0).tolist()
         d = x
@@ -78,7 +195,7 @@ def TData(d,parName,par1):
         pass
     else:
         pass
-        
+
     return d
 
 def PrepTransitData(DataFile,parlist,BestFitPar):
@@ -91,14 +208,14 @@ def PrepTransitData(DataFile,parlist,BestFitPar):
         parData[par] = TData(d,par,BestFitPar[par]['value'])
         rg0,rg1 = getRange(parData[par])
         axisData[par] = {'axisRange':(rg0,rg1),'axisTicks':axisTicks(rg0,rg1)}
-        
+
     return parData, axisData
 
 def parErr4Plot(parErr):
     """
     convert error dict to one useable by plotmcmc
     """
-    
+
     outPar = {}
     for par in parErr.keys():
         if parErr[par]['useSingle']:
@@ -114,6 +231,7 @@ def robust1sigma(x):
     """
         return 1-sigma
     """
+    
     x = x-np.median(x)
     dsort = np.sort(x)
     npts = len(x)

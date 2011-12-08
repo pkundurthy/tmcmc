@@ -4,6 +4,7 @@ import scipy.stats
 from iopostmcmc import readMCMChdr, read1parMCMC
 from iopostmcmc import isNonParam
 from matplotlib import pyplot as plt
+import itertools
 import sys
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
@@ -72,6 +73,29 @@ def covcorStats(File, FileTag, **kwargs):
     OutFileObject_COV.close()
     OutFileObject_PR.close()
     OutFileObject_SR.close()
+    
+def sortStats(StatDict, stype):
+    
+
+    keys = StatDict[stype].keys()
+    comboList = []
+    StatVal = []
+    for combo in itertools.combinations(keys,2):
+        value = abs(StatDict[stype][combo[0]][combo[1]]['value'])
+        StatVal.append(value)
+        comboList.append(combo)
+
+    StatVal = np.array(StatVal)
+    ind = StatVal.argsort()
+    sortDict = {}
+    j = 0
+    for i in ind[::-1]:
+        sortDict[j] = {'combo':comboList[i],'value':StatVal[i]}
+        j += 1
+
+    return sortDict
+
+
     
 def plotTrace(File1,File2, **keywords):
     """ Plot the trace of a single parameter between two chains """

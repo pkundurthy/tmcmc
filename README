@@ -1,4 +1,4 @@
- Last Updated: 2011-Nov-14 15:26:28
+ Last Updated: 2011-Nov-18 10:33:30
 
 
 + myderivedfunc.py
@@ -7,6 +7,7 @@
 
 + postmcmc.py
      covcorStats(File, FileTag, **kwargs):
+     sortStats(StatDict, stype):
      plotTrace(File1,File2, **keywords):
      autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
 
@@ -77,8 +78,11 @@
 
 + plotTransit.py
      returnTsub(TSTAMP):
-     TForm(parName):
-     TransitParFormat(parlist):
+     Tfilter(TT,objectName):
+     TForm(parName,**kwargs):
+     TStatForm(parName,**kwargs):
+     TransitParFormat(parlist,**kwargs):
+     TransitStatParFormat(parlist,**kwargs):
      TData(d,parName,par1):
      PrepTransitData(DataFile,parlist,BestFitPar):
      parErr4Plot(parErr):
@@ -103,6 +107,7 @@
      getPars(filename):
      readMCMC(filename):
      read1parMCMC(filename,parname,**kwargs):
+     cropMCMCnew(mcmcfile,outfile,cropperc):
      cropMCMC(mcmcfile,outfile,cropperc):
      makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):
      readErrorFile(errorFile):

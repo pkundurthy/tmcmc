@@ -12,7 +12,7 @@ rc('text',usetex=True)
 rc('font',family='serif')
 import matplotlib.colors
 from matplotlib import pyplot as plt
-from matplotlib.ticker import FormatStrFormatter,MaxNLocator
+from matplotlib.ticker import FormatStrFormatter,MaxNLocator, FixedLocator
 from matplotlib.font_manager import fontManager, FontProperties
 #from matplotlib.gridspec import GridSpec
 
@@ -62,7 +62,8 @@ def JC(par1,par2,dataMCMC):
     x = x[goodindex1]
     y = y[goodindex1]
 
-    sigma_arr = np.array([1e0,2e0,3e0,4e0,5e0])
+    #sigma_arr = np.array([1e0,2e0,3e0,4e0,5e0])
+    sigma_arr = np.array([1e0,3e0,5e0])
     levels = scipy.special.erf(sigma_arr/np.sqrt(2e0))
     
     hist2D,xedge,yedge = np.histogram2d(x,y,bins=25)
@@ -98,8 +99,10 @@ def JC(par1,par2,dataMCMC):
     xarr = rangeMidpoints(x1)
     yarr = rangeMidpoints(y1)
     
-    cmap = matplotlib.colors.Colormap('jet',N=5)
-    sig_labels = (r'1-$\sigma$',r'2-$\sigma$',r'3-$\sigma$',r'4-$\sigma$',r'5-$\sigma$')
+    #cmap = matplotlib.colors.Colormap('jet',N=5)
+    cmap = matplotlib.colors.Colormap('jet',N=3)
+    #sig_labels = (r'1-$\sigma$',r'2-$\sigma$',r'3-$\sigma$',r'4-$\sigma$',r'5-$\sigma$')
+    sig_labels = (r'1-$\sigma$',r'3-$\sigma$',r'5-$\sigma$')
     sig_labels = sig_labels[::-1]
     clevel = {}
     newlev = []
@@ -111,8 +114,9 @@ def JC(par1,par2,dataMCMC):
     clevel[0] = ''
     #newlevalt = newlev.copy()
     newlev.append(0)
-    colortup = ('#FF6600','#FF9900','#FFCC00','#FFFF00','#FFFF99')
-    smooth2D = scipy.ndimage.filters.median_filter(hist2D,size=3)
+    #colortup = ('#FF6600','#FF9900','#FFCC00','#FFFF00','#FFFF99')
+    colortup = ('#FF6600','#FFCC00','#FFFF99')
+    smooth2D = hist2D #scipy.ndimage.filters.median_filter(hist2D,size=3)
     #extent = [yedge[0],yedge[-1],xedge[-1],xedge[0]]
     CSV = plt.contourf(xarr,yarr,smooth2D,levels=newlev,colors=colortup)
     CS = plt.contour(xarr,yarr,smooth2D,levels=newlev[:-1],colors='k')
@@ -462,8 +466,82 @@ class triplot:
 
         plt.subplots_adjust(hspace=0)
         plt.subplots_adjust(wspace=0)
-        
+
         if PlotFile:
             plt.savefig(FileName)
         else:
             plt.show()
+
+
+#def tgridLines((x0,x1),(y0,y1),xpos,ypos):
+    
+    
+
+
+class statTriplot:
+    
+    def __init__(self, parList):
+        
+        self.parList = parList
+        self.xp = parList[:-1]
+        self.yp = parList[::-1][:-1]
+        self.GridDict = SimplifyGrid(self.xp,self.yp)
+
+        TextCoord = {}
+        for grid in self.GridDict.keys():
+            print grid[0], grid[1]
+            TextCoord[grid] = {'x':grid[0]+0.5,'y':grid[1]+0.5}
+        
+        self.TextCoord = TextCoord
+        
+    def parText(self,parLabel):
+
+        Label = {}
+        for grid in self.GridDict.keys():
+            Label[grid] = {'x':parLabel[self.GridDict[grid][0]]['label'],\
+                           'y':parLabel[self.GridDict[grid][1]]['label']}
+
+        self.Label = Label
+        
+    def statsTable(self,Stats,stype):
+
+        xlist = []
+        ylist = []
+        tlist = []
+        xparList = []
+        yparList = []
+        for grid in self.GridDict.keys():
+            x = self.TextCoord[grid]['x']
+            y = self.TextCoord[grid]['y']
+            xpar = self.GridDict[grid][0]
+            ypar = self.GridDict[grid][1]
+            xLabel = self.Label[grid]['x']
+            yLabel = self.Label[grid]['y']
+            text = str(Stats['cov'][xpar][ypar]['value'])
+            xlist.append(x)
+            ylist.append(y)
+            xparList.append(xLabel)
+            yparList.append(yLabel)
+            tlist.append(text)
+        
+        for i in range(len(xlist)):
+            print xlist[i], ylist[i], tlist[i]
+            plt.text(xlist[i],ylist[i],\
+                     tlist[i],horizontalalignment='center',\
+                     verticalalignment='center')
+        tickX = FixedLocator(xlist)
+        tickY = FixedLocator(ylist)
+        x0,x1 = min(xlist)-min(xlist),max(xlist)+min(xlist)
+        y0,y1 = min(ylist)-min(ylist),max(ylist)+min(ylist)
+        plt.xlim(x0,x1)
+        plt.ylim(y0,y1)
+        plt.setp(plt.gca().xaxis.set_major_locator(tickX))
+        xtic = list(set(xlist))
+        xpl  = list(set(xparList))
+        ytic = list(set(ylist))
+        ypl  = list(set(yparList))
+        gridLines = tgridLines((x0,x1),(y0,y1),xtic,ytic)
+        plt.xticks(xtic,xpl)
+        plt.setp(plt.gca().yaxis.set_major_locator(tickY))
+        plt.xticks(ytic,ypl)
+        plt.show()

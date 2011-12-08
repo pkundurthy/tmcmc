@@ -122,7 +122,7 @@ def readMCMChdr(filename):
         sys.exit(1)
 
     return hdrkeys
-
+    
 def getPars(filename):
     """ return list of parameters only """
     
@@ -159,7 +159,7 @@ def readMCMC(filename):
 
     return out_data
    
-def read1parMCMC(filename,parname,**kwargs):
+def read1parMCMC(filename,parname):
     """
         Reads a single column of data from an MCMC file 
         and store it into a dictionary.
@@ -169,11 +169,6 @@ def read1parMCMC(filename,parname,**kwargs):
         OUTPUTS
             data dictionary - with MCMC and related stats
      """
-     
-    DFlag = False
-    for key in kwargs:
-        if key.lower().startswith('derive'):
-            DFlag = kwargs[key]
             
     out_data = {}
     hdrkeys = readMCMChdr(filename)
@@ -199,11 +194,13 @@ def read1parMCMC(filename,parname,**kwargs):
             data_line = ReadMCMCline(line,hdrkeys)
             out_data[parname].append(data_line[parname])
             out_data['istep'].append(data_line['istep'])
-            if not DFlag:
+            try:
                 out_data['chi1'].append(data_line['chi1'])
                 out_data['frac'].append(data_line['frac'])
                 out_data['acr'].append(data_line['acr'])
-
+            except:
+                pass
+            
     return out_data
             
 def cropMCMCnew(mcmcfile,outfile,cropperc):
