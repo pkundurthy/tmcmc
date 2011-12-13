@@ -19,7 +19,11 @@ def returnTsub(TSTAMP,**kwargs):
     """
 
     if TSTAMP.startswith('T'):
-        Tnum = TSTAMP.strip('T').strip('0.').strip('T')
+        Tsplit = map(str, TSTAMP.split('.'))
+        if len(Tsplit) == 1:
+            Tnum = long(Tsplit[0].strip('T'))
+        else:
+            Tnum = long(Tsplit[1].strip('T'))
         for key in kwargs:
             if key.lower().startswith('object'):
                 objectname = kwargs[key]
@@ -63,7 +67,6 @@ def TForm(parName,**kwargs):
         for i in range(len(msplit)): 
             if i > 0: 
                 TT += returnTsub(msplit[i]).strip('$')+' '
-
         for key in kwargs:
             if key.lower().startswith('object'):
                 objectName = kwargs[key]
