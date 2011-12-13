@@ -159,7 +159,7 @@ def readMCMC(filename):
 
     return out_data
    
-def read1parMCMC(filename,parname):
+def read1parMCMC(filename,parname, **kwargs):
     """
         Reads a single column of data from an MCMC file 
         and store it into a dictionary.
@@ -169,7 +169,7 @@ def read1parMCMC(filename,parname):
         OUTPUTS
             data dictionary - with MCMC and related stats
      """
-            
+
     out_data = {}
     hdrkeys = readMCMChdr(filename)
     found = False
