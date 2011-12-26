@@ -163,10 +163,8 @@ def subID(Coord,Nx,Ny):
     
     x = Coord[0]
     y = Coord[1]
-    TotalPlots = Nx*Ny
-    flipx = x
-    flipy = Ny-1-y
-    plotID = flipy*Nx+(flipx+1)
+    
+    plotID = (x+1) + (Ny-1-y)*Nx
     
     return plotID
 
@@ -188,11 +186,14 @@ def SimplifyGrid(xp,yp):
     #yp = sorted(yp)
     GridDict = {}
     for ix in xpD.keys():
+    #for ix in range(len(xp)):
         go = True
+        #for iy in range(len(yp)):
         for iy in ypD.keys():
             if xpD[ix] == ypD[iy]:
                 go = False
             if go:
+                #print ix,iy, xpD[ix], ypD[iy]
                 GridDict[(ix,iy)] = (xpD[ix],ypD[iy])
 
     return GridDict
@@ -277,13 +278,13 @@ class triplot:
                 pass
                      
     def initPlots(self,**kwargs):
-        
+
         UseHist = False
         hbins = 25
         DataDict = {}
         for par in self.parList:
             DataDict[par] = read1parMCMC(self.DataFile,par)[par]
-            
+
         for key in kwargs:
             if key.lower() == 'hist':
                 UseHist = kwargs[key]
@@ -291,15 +292,15 @@ class triplot:
                 hbins = long(kwargs[key])
             if key.lower() == 'data':
                 DataDict = kwargs[key]
-                        
+
         self.hbins = hbins
         self.UseHist = UseHist
         self.DataDict = DataDict
-        
+
         if self.UseHist:
             self.GridNX += 1
             self.GridNY += 1
-            
+
         HistDict = {}
         for par in self.parList:
             ix = None
@@ -324,9 +325,9 @@ class triplot:
                 HistDict[(ix,iy)] = (par,Or)
             else:
                 HistDict[(ix,iy)] = None
-        
+
         self.HistDict = HistDict
-            
+
     def makePlot(self, **kwargs):
         
         PlotFile = False
@@ -346,7 +347,12 @@ class triplot:
                 legfsz = long(kwargs[key])
             if key.lower().startswith('legloc'):
                 loctup = kwargs[key]
-
+        
+        width, height = matplotlib.rcParams['figure.figsize']
+        size = min( [width,height])
+        # make a square figure
+        fig = plt.figure(figsize=(size,size))
+        
         for Grid in self.GridDict.keys():
             LegMade = False
             if self.GridDict[Grid] != None:
@@ -468,32 +474,32 @@ class triplot:
         plt.subplots_adjust(wspace=0)
 
         if PlotFile:
-            plt.savefig(FileName)
+            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.1)
         else:
             plt.show()
 
-
-#def tgridLines((x0,x1),(y0,y1),xpos,ypos):
-    
-    
-
-
 class statTriplot:
     
-    def __init__(self, parList):
+    def __init__(self, xpars,ypars):
         
-        self.parList = parList
-        self.xp = parList[:-1]
-        self.yp = parList[::-1][:-1]
+        self.xp = xpars
+        self.yp = ypars
+        
         self.GridDict = SimplifyGrid(self.xp,self.yp)
+        #for key in self.GridDict.keys():
+            #print key, self.GridDict[key]
+        
+        maxX = 0
+        maxY = 0
+        for Grid in self.GridDict.keys():
+            if Grid[0] > maxX:
+                maxX = Grid[0]
+            if Grid[1] > maxY:
+                maxY = Grid[1]
 
-        TextCoord = {}
-        for grid in self.GridDict.keys():
-            print grid[0], grid[1]
-            TextCoord[grid] = {'x':grid[0]+0.5,'y':grid[1]+0.5}
-        
-        self.TextCoord = TextCoord
-        
+        self.GridNX = maxX+1
+        self.GridNY = maxY+1
+
     def parText(self,parLabel):
 
         Label = {}
@@ -503,45 +509,87 @@ class statTriplot:
 
         self.Label = Label
         
-    def statsTable(self,Stats,stype):
+    def statsTable(self,Stats,stype, **kwargs):
 
-        xlist = []
-        ylist = []
-        tlist = []
-        xparList = []
-        yparList = []
-        for grid in self.GridDict.keys():
-            x = self.TextCoord[grid]['x']
-            y = self.TextCoord[grid]['y']
-            xpar = self.GridDict[grid][0]
-            ypar = self.GridDict[grid][1]
-            xLabel = self.Label[grid]['x']
-            yLabel = self.Label[grid]['y']
-            text = str(Stats['cov'][xpar][ypar]['value'])
-            xlist.append(x)
-            ylist.append(y)
-            xparList.append(xLabel)
-            yparList.append(yLabel)
-            tlist.append(text)
+
+        width, height = matplotlib.rcParams['figure.figsize']
+        size = max([width,height])
+        # make a square figure
+        fig = plt.figure(figsize=(size,size))
+
+        # default font sizes
+        xfsize = np.floor(300e0*size/(24*max(self.GridNX,self.GridNY)))
+        yfsize = np.floor(300e0*size/(24*max(self.GridNX,self.GridNY)))
+        fsize = np.floor(300e0*size/(24*max(self.GridNX,self.GridNY)))
+        yshift = 0
+        xshift = 0
+        PlotFile = False
+        #print xfsize,yfsize,fsize
+
+        for key in kwargs:
+            if key.lower().startswith('plotfile'):
+                PlotFile = True
+                FileName = kwargs[key]
+            elif key.lower().startswith('numfsize'):
+                fsize = kwargs[key]
+            elif key.lower().startswith('fsizex'):
+                xfsize = kwargs[key]
+            elif key.lower().startswith('fsizey'):
+                yfsize = kwargs[key]
+            elif key.lower().startswith('xshift'):
+                xshift = kwargs[key]
+            elif key.lower().startswith('yshift'):
+                yshift = kwargs[key]
+            else:
+                pass
         
-        for i in range(len(xlist)):
-            print xlist[i], ylist[i], tlist[i]
-            plt.text(xlist[i],ylist[i],\
-                     tlist[i],horizontalalignment='center',\
-                     verticalalignment='center')
-        tickX = FixedLocator(xlist)
-        tickY = FixedLocator(ylist)
-        x0,x1 = min(xlist)-min(xlist),max(xlist)+min(xlist)
-        y0,y1 = min(ylist)-min(ylist),max(ylist)+min(ylist)
-        plt.xlim(x0,x1)
-        plt.ylim(y0,y1)
-        plt.setp(plt.gca().xaxis.set_major_locator(tickX))
-        xtic = list(set(xlist))
-        xpl  = list(set(xparList))
-        ytic = list(set(ylist))
-        ypl  = list(set(yparList))
-        gridLines = tgridLines((x0,x1),(y0,y1),xtic,ytic)
-        plt.xticks(xtic,xpl)
-        plt.setp(plt.gca().yaxis.set_major_locator(tickY))
-        plt.xticks(ytic,ypl)
-        plt.show()
+        for grid in self.GridDict.keys():
+            plotID = subID(grid,self.GridNX,self.GridNY)
+            plt.subplot(self.GridNY,self.GridNX,plotID)
+            
+            Stat = Stats[stype]\
+                        [self.GridDict[grid][0]]\
+                        [self.GridDict[grid][1]]\
+                        ['value']
+            
+            absStat = abs(Stat)
+
+            cross = np.linspace(0,1,3)
+            plt.plot(cross,cross,marker='o',\
+                     markerfacecolor='w',\
+                     markeredgecolor='w',\
+                     linestyle='None')
+            #numsplit = map(str,text.split('e'))
+            #OutText = r'%s$\times 10^{%s}$' % (numsplit[0],numsplit[1])
+            if absStat < 0.01:
+                text = r'$< 0.01$'
+                OutText = r'%s' % text
+                plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize)
+            elif absStat >= 0.5:
+                text = format(abs(Stat),'0.2f')
+                plt.subplot(self.GridNY,self.GridNX,plotID, axisbg='gray')
+                OutText = r'%s' % text
+                plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize,color='w')
+            else:
+                text = format(abs(Stat),'0.2f')
+                plt.subplot(self.GridNY,self.GridNX,plotID)
+                OutText = r'%s' % text
+                plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize)
+
+            
+            plt.setp(plt.gca(),yticklabels=[],yticks=[])
+            plt.setp(plt.gca(),xticklabels=[],xticks=[])
+            if grid[1] == 0:
+                #print self.Label[grid]['x'], grid
+                plt.xlabel(self.Label[grid]['x'],fontsize=xfsize)
+            if grid[0] == 0:
+                #print self.Label[grid]['y'], grid
+                plt.ylabel(self.Label[grid]['y'],fontsize=yfsize)
+            
+        plt.subplots_adjust(hspace=0)
+        plt.subplots_adjust(wspace=0)
+
+        if PlotFile:
+            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.1)
+        else:
+            plt.show()

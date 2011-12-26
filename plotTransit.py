@@ -41,18 +41,18 @@ def Tfilter(TT,objectName):
 
     if objectName.lower() == 'xo2':
         if TT.startswith('T_{2}'):
-            TT = 'I-filter'
+            TT = 'I'
         elif TT.startswith('T_{8}'):
-            TT = 'r\'-filter'
+            TT = 'r\''
     elif objectName.lower() == 'wasp2':
         if TT.startswith('T_{1}'):
-            TT = 'I-filter'
+            TT = 'I'
         elif TT.startswith('T_{8}'):
-            TT = 'r\'-filter'
+            TT = 'r\''
     elif objectName.lower() == 'tres3':
-        TT = 'r\'-filter'
+        TT = 'r\''
     elif objectName.lower() == 'gj1214':
-        TT = 'r\'-filter'
+        TT = 'r\''
 
     return TT
 
@@ -64,22 +64,26 @@ def TForm(parName,**kwargs):
     elif parName.startswith('D'):
         msplit = map(str,parName.split('.'))
         TT = ''
-        for i in range(len(msplit)): 
+        Sym = ''
+        for i in range(len(msplit)):
             if i > 0: 
                 TT += returnTsub(msplit[i]).strip('$')+' '
         for key in kwargs:
             if key.lower().startswith('object'):
                 objectName = kwargs[key]
                 TT = Tfilter(TT,objectName)
+                Sym = r'$D_{\textrm{(%s)}}$' % (TT)
             else:
-                pass
-        parSym = r'$D_{\textrm{(%s)}}$' % (TT)
+                TT = TT.strip('T_{')
+                TT = TT[:-2]
+                Sym = r'$D_{\textrm{%s}}$' % (TT)
+        parSym = Sym
         AxFormat = FormatStrFormatter('%.4f')
     elif parName.startswith('v'):
         msplit = map(str,parName.split('.'))
         TT = ''
-        for i in range(len(msplit)): 
-            if i > 0: 
+        for i in range(len(msplit)):
+            if i > 0:
                 TT += returnTsub(msplit[i]).strip('$')+' '
 
         for key in kwargs:
@@ -95,7 +99,7 @@ def TForm(parName,**kwargs):
     elif parName.startswith('RpRs'):
         msplit = map(str,parName.split('.'))
         TT = ''
-        for i in range(len(msplit)): 
+        for i in range(len(msplit)):
             if i > 0: 
                 TT += returnTsub(msplit[i]).strip('$')+' '
 
@@ -258,6 +262,23 @@ def parTimeDay2Sec(pars,bestFitPars):
                 pars[par]['step'] = (pars[par]['step'])*86400e0
 
     return pars
+
+def ShortenTT(parLabels):
+    
+    for par in parLabels.keys():
+        if '$T_{mid}$ - ' in parLabels[par]['label']:
+             parLabels[par]['label'] = '$T_{%s}$' % parLabels[par]['label'].strip('$T_{mid} - ')
+             
+    return parLabels
+        
+def getxyparsFromParList(parList):
+    """
+    """
+    
+    xp = parList[:-1]
+    yp = parList[::-1][:-1]
+    
+    return xp, yp
 
 def makeStatLabels(Stats,DataFile):
     """
