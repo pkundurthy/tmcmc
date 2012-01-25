@@ -221,3 +221,56 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
     print >> OutFileObject, '## ALL ## Eff Length = '+format(min(elen),'d')
     OutFileObject.close()
 
+def GelmanRubinConvergence(FileList,ModelFile,OutFile):
+    """The Gelman-Rubin convergence statistic. 
+    When this is close to 1, the parameter chain has converged"""
+
+    smallM = len(FileList)
+    hdrkeys = readMCMChdr(FileList[0])
+    GRFile = open(OutFile,'w')
+    print >> GRFile, "# Gelman-Rubin Statistic per parameter"
+
+    for i1 in hdrKeys.keys():
+        key1 = hdrKeys[i1]
+        if isNonParam(key1):
+            pass
+        else:
+            xmean_vector = []
+            si2_vector = []
+            xi2_vector = []
+            allX = []
+            
+            for iChain in range(smallM):
+                dp = read1parMCMC(FileList[iChain],key1)
+                if iChain == 0:
+                    smallN = len(dp[key1])
+                xmean_vector.append(np.mean(dp[key1]))
+                si2_vector.append(np.var(dp[key1]))
+                xi2_vector.append(np.mean(dp[key1])**2)
+                allX.extend(dp[key1])
+                
+            xmean_vector = np.array(xmean_vector)
+            si2_vector = np.array(si2_vector)
+            xi2_vector = np.array(xi2_vector)
+            allX = np.array(allX)
+
+            Bn = np.var(xmean_vector)
+            W = np.mean(si2_vector)
+            
+            sig2hat = ((smallN-1)*W)/smallN + Bn
+            Vhat = sig2hat + Bn/smallM
+            
+            term1 = (((smallN-1)/smallN)**2)*(1e0/smallM)*np.var(si2_vector)
+            term2 = (((smallM + 1)/smallM)**2)*(2e0/(smallM-1))*(Bn**2)
+            term3a = 2e0*((smallM + 1)*(smallN -1)/(smallM*(smallN**2)) )
+            cov_si2_xi2 = np.cov( si2_vector, xi2_vector) 
+            cov_si2_x = np.cov(si2_vector, xmean_vector)
+            xdash = np.mean(allX)
+            term3b = (smallN/smallM)*(cov_si2_xi2 - 2e0*xdash*cov_si2_x)
+            
+            varVhat = term1 + term2 + term3a*term3b
+            df = 2e0*(Vhat**2)/(varVhat)
+            Rhat = (Vhat/W)*(df/(df-2e0))
+            print >> GRFile, key1+' = ',Rhat
+
+    GRFile.close()

@@ -327,11 +327,13 @@ def computeRpRs(u1,u2,tT,tG,D):
     """ computea the planet-to-star radius ratio given 
     u1, u2, tT, tG, and the transit depth.
     """
-    
-    a5 = -1.0e0*(u1+2.0e0*u2)/(u2*np.sqrt(tT/tG))
-    a4 = -1.0e0*(1.0e0-u1-u2)/(u2*tT/tG)
-    a0 = D*(1e0-u1/3e0-u2/6e0)/(u2*tT/tG)
-    RpRs = (newtraph6(0.3,a5,a4,a0))**2e0
+    if not u2 == 0e0:
+        a5 = -1.0e0*(u1+2.0e0*u2)/(u2*np.sqrt(tT/tG))
+        a4 = -1.0e0*(1.0e0-u1-u2)/(u2*tT/tG)
+        a0 = D*(1e0-u1/3e0-u2/6e0)/(u2*tT/tG)
+        RpRs = (newtraph6(0.3,a5,a4,a0))**2e0
+    else:
+        RpRs = float('inf')
 
     return RpRs
 

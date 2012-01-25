@@ -1,4 +1,4 @@
- Last Updated: 2011-Nov-18 10:33:30
+ Last Updated: 2012-Jan-24 10:40:15
 
 
 + myderivedfunc.py
@@ -47,6 +47,7 @@
      String2Bool(inStr):
      String2IntFloat(inStr):
      format(str, form):
+     linefitquick_werr(x,y,yerr):
 
 + iomcmc.py
      MakeModelParsContinue(par0,par1,ModelPars):
@@ -77,9 +78,10 @@
      WriteLCNUSoutlierRejection(OutFileTag,file,IngressTime,EgressTime):
 
 + plotTransit.py
-     returnTsub(TSTAMP):
+     returnTsub(TSTAMP,**kwargs):
      Tfilter(TT,objectName):
      TForm(parName,**kwargs):
+     TransitTableFormat(allpars,**kwargs):
      TStatForm(parName,**kwargs):
      TransitParFormat(parlist,**kwargs):
      TransitStatParFormat(parlist,**kwargs):
@@ -88,6 +90,8 @@
      parErr4Plot(parErr):
      robust1sigma(x):
      parTimeDay2Sec(pars,bestFitPars):
+     ShortenTT(parLabels):
+     getxyparsFromParList(parList):
      makeStatLabels(Stats,DataFile):
 
 + func_example.py
@@ -106,7 +110,7 @@
      readMCMChdr(filename):
      getPars(filename):
      readMCMC(filename):
-     read1parMCMC(filename,parname,**kwargs):
+     read1parMCMC(filename,parname, **kwargs):
      cropMCMCnew(mcmcfile,outfile,cropperc):
      cropMCMC(mcmcfile,outfile,cropperc):
      makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):

@@ -79,13 +79,12 @@ def TForm(parName,**kwargs):
                 Sym = r'$D_{\textrm{%s}}$' % (TT)
         parSym = Sym
         AxFormat = FormatStrFormatter('%.4f')
-    elif parName.startswith('v'):
+    elif parName.startswith('v1.') or parName.startswith('v2.'):
         msplit = map(str,parName.split('.'))
         TT = ''
         for i in range(len(msplit)):
             if i > 0:
                 TT += returnTsub(msplit[i]).strip('$')+' '
-
         for key in kwargs:
             if key.lower().startswith('object'):
                 objectName = kwargs[key]
@@ -111,6 +110,9 @@ def TForm(parName,**kwargs):
                 pass
         parSym = r'$(R_{p}/R_{*})_{\textrm{(%s)}}$' % (TT)
         AxFormat = FormatStrFormatter('%.4f')
+    elif parName.startswith('vel'):
+        parSym = r'$\nu/R_{*}$'
+        AxFormat = FormatStrFormatter('%.2f')
     elif parName == 'tT':
         parSym = r'$\tau_{T}$'
         AxFormat = FormatStrFormatter('%.4f')
@@ -129,6 +131,16 @@ def TForm(parName,**kwargs):
         
     return {'label':parSym,'axForm':AxFormat}
     
+def TransitTableFormat(allpars,**kwargs):
+    """
+    """
+    
+    parFormDict = {}
+    for par in parlist:
+        parFormDict[par] = TForm(par,**kwargs)
+
+    return parFormDict
+
 def TStatForm(parName,**kwargs):
     
     if parName.startswith('T0'):
@@ -150,7 +162,7 @@ def TStatForm(parName,**kwargs):
         parSym = r'$\tau_{T}$'
     elif parName == 'tG':
         parSym = r'$\tau_{G}$'
-    elif parName.startswith('v'):
+    elif parName.startswith('v1.') or parName.startswith('v2.'):
         msplit = map(str,parName.split('.'))
         TT = ''
         for i in range(len(msplit)):
@@ -162,6 +174,8 @@ def TStatForm(parName,**kwargs):
             else:
                 pass
         parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+    elif parName.startswith('vel'):
+        parSym = r'$\nu/R_{*}$'
     else:
         parSym = parName
 
@@ -198,7 +212,7 @@ def TData(d,parName,par1):
         pass
     elif parName == 'tT':
         pass
-    elif parName.startswith('v'):
+    elif parName.startswith('v1.') or parName.startswith('v2.'):
         pass
     else:
         pass
