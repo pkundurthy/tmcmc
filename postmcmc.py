@@ -221,14 +221,18 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
     print >> OutFileObject, '## ALL ## Eff Length = '+format(min(elen),'d')
     OutFileObject.close()
 
-def GelmanRubinConvergence(FileList,ModelFile,OutFile):
+def GelmanRubinConvergence(FileList,ModelFile,OutFile, **kwargs):
     """The Gelman-Rubin convergence statistic. 
     When this is close to 1, the parameter chain has converged"""
 
     smallM = len(FileList)
-    hdrkeys = readMCMChdr(FileList[0])
+    hdrKeys = readMCMChdr(FileList[0])
     GRFile = open(OutFile,'w')
     print >> GRFile, "# Gelman-Rubin Statistic per parameter"
+    lastN = 0
+    for keyw in kwargs:
+        if keyw == 'lastn':
+            lastN = kwargs[keyw]
 
     for i1 in hdrKeys.keys():
         key1 = hdrKeys[i1]
@@ -242,18 +246,27 @@ def GelmanRubinConvergence(FileList,ModelFile,OutFile):
             
             for iChain in range(smallM):
                 dp = read1parMCMC(FileList[iChain],key1)
+                x = dp[key1][-1*lastN:]
                 if iChain == 0:
-                    smallN = len(dp[key1])
-                xmean_vector.append(np.mean(dp[key1]))
-                si2_vector.append(np.var(dp[key1]))
-                xi2_vector.append(np.mean(dp[key1])**2)
-                allX.extend(dp[key1])
+                    smallN = len(x)
+                else:
+                    alternateN = len(x)
+                    if alternateN != smallN:
+                        print 'Chain lengths are not the same for'
+                        print FileList[0], ' and ', FileList[iChain]
+                        print 'try using lastN keyword'
+                        sys.exit()
+                    
+                xmean_vector.append(np.mean(x))
+                si2_vector.append(np.var(x))
+                xi2_vector.append(np.mean(x)**2)
+                allX.extend(x)
                 
             xmean_vector = np.array(xmean_vector)
             si2_vector = np.array(si2_vector)
             xi2_vector = np.array(xi2_vector)
             allX = np.array(allX)
-
+            
             Bn = np.var(xmean_vector)
             W = np.mean(si2_vector)
             
@@ -266,11 +279,12 @@ def GelmanRubinConvergence(FileList,ModelFile,OutFile):
             cov_si2_xi2 = np.cov( si2_vector, xi2_vector) 
             cov_si2_x = np.cov(si2_vector, xmean_vector)
             xdash = np.mean(allX)
-            term3b = (smallN/smallM)*(cov_si2_xi2 - 2e0*xdash*cov_si2_x)
+            term3b = (smallN/smallM)*(cov_si2_xi2[0][1] - 2e0*xdash*cov_si2_x[0][1])
             
             varVhat = term1 + term2 + term3a*term3b
             df = 2e0*(Vhat**2)/(varVhat)
             Rhat = (Vhat/W)*(df/(df-2e0))
+            print key1, Rhat
             print >> GRFile, key1+' = ',Rhat
 
     GRFile.close()
