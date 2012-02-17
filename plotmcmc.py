@@ -37,7 +37,7 @@ def return1Dfrom2D(arr2D):
     return arr1D
 
 def singleJC(data1,data2):
-    """ make a single Joint-Correlation plot 
+    """ make a single Joint-Correlation plot
     from single parameter dictionaries """
     
     new_data = {}
@@ -511,7 +511,6 @@ class statTriplot:
         
     def statsTable(self,Stats,stype, **kwargs):
 
-
         width, height = matplotlib.rcParams['figure.figsize']
         size = max([width,height])
         # make a square figure
@@ -576,7 +575,6 @@ class statTriplot:
                 OutText = r'%s' % text
                 plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize)
 
-            
             plt.setp(plt.gca(),yticklabels=[],yticks=[])
             plt.setp(plt.gca(),xticklabels=[],xticks=[])
             if grid[1] == 0:

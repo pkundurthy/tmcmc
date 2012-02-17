@@ -489,6 +489,26 @@ def LinearLeastSq_coeff(A,B):
     BetaMatrix = AMatrixTranspose*BMatrix
     OutSolution = np.linalg.lstsq(AlphaMatrix,BetaMatrix)  # solving for linear-least square parameters
     return OutSolution[0]
+    
+def LinearLeastSq_errors(A,B):
+    """ Performs Linear Least-Squares Minimization given the design matrix A and
+        the observed data weighted by the errors (B).
+        See Chapter 15.4 in Numerical Recipies in C (Second Edition)
+    """
+
+    shapeA = np.shape(A)
+    if len(shapeA) == 1:
+        lengthID = 0
+    if len(shapeA) == 2:
+        lengthID = 1
+    AMatrix = np.matrix(A)
+    BMatrix = np.matrix(B)
+    AMatrixTranspose = AMatrix.T
+    AlphaMatrix = AMatrixTranspose*AMatrix
+    CMatrix = AlphaMatrix.I
+    print CMatrix
+    # solving for linear-least square parameters
+    return CMatrix
 
 """ The Bounds Checking function """
 def ApplyBounds(ModelParams,BoundParams):

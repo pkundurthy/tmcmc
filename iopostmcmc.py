@@ -422,7 +422,32 @@ def generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
                 DTco[i].update({tag:DetrendedData[tag]['dtcoeff']})
         
     return DTco
-
+            
+def correctionFromMCMCBestFit(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+    """
+    Generate Correction functions from MCMCfile (make sure this is the cropped file)
+    Make Sure ModelParams is the bestfit
+    """
+    
+    exec "from myfunc import %s as ModelFunc" % FuncName
+    
+    DataMCMC = readMCMC(MCMCFile)
+    DTco = {}
+    for i in range(len(DataMCMC['istep'])):
+        DTco[i] = {}
+        for key in DataMCMC.keys():
+            if not isNonParam(key):
+                ModelParams[key]['value'] = DataMCMC[key][i]
+        
+        ModelData = ModelFunc(ModelParams,ObservedData)
+        DetrendedData = DetrendData(ObservedData,ModelData,NuisanceData,'',False)
+        
+        for tag in DetrendedData.keys():
+            if not tag.startswith('all'):
+                DTco[i].update({tag:DetrendedData[tag]['correction']})
+        
+    return DTco
+            
 def correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
     """
     Generate Correction functions from MCMCfile

@@ -95,7 +95,37 @@ def sortStats(StatDict, stype):
 
     return sortDict
 
+def plotChain(File1, **keywords):
+    """ Plot the trace of a single parameter between two chains """
+    
+    #ftag = ''
+    ftag = 'mcmc'
+    silent = False
+    for keyw in keywords:
+        if keyw == 'ftag':
+            ftag = keywords[keyw]
+        if keyw == 'Silent':
+            silent = keywords[keyw]
+            
+    hdrKeys = readMCMChdr(File1)
 
+    for i in hdrKeys.keys():
+        key = hdrKeys[i]
+        if isNonParam(key):
+            pass
+        else:
+            try:
+                d1 = read1parMCMC(File1,key)
+                i1 = d1['istep']
+                x1 = d1[key]
+                pp = plt.plot(i1,x1,'b.')
+                plt.title(key+' '+ftag)
+                plt.savefig(ftag+'.TRACE.par'+key+'.png')
+                if not silent: print 'plotting Trace for '+key
+                plt.clf()
+            except:
+                print 'key not found'
+                raise
     
 def plotTrace(File1,File2, **keywords):
     """ Plot the trace of a single parameter between two chains """
