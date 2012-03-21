@@ -121,7 +121,10 @@ def bound_bfraction_MTQ_2011(ModelParams):
                 parstrip = par.strip('D.')
                 D, v1, v2 = MTQ_FilterParams(parstrip,Tags,ModelParams)
                 u1, u2 = tqe.LDC_v2u(v1,v2)
+                #print 'here 1'
+                #print  tT, tG, v1, v2, D, par, ModelParams[par]['value']
                 RpRs.append((tqe.computeRpRs(u1,u2,tT,tG,D)))
+                #print 'here 2'
         for el in RpRs:
             bfraction = 1e0 - np.sqrt(el*(tT/tG))
             if bfraction < 0:

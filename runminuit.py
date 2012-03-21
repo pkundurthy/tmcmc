@@ -35,26 +35,78 @@ def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tol
     dumpfile6.close()
 
     # Begin running Minuit
-    m = minuit2.Minuit2(transit_chisquared(OpenParNames))
-    m.tol = tolnum #55.4720096  #*1e8
-    m.strategy = 2
-    for key in m.values.keys():
-        m.values[key] = ModelParams[key]['value']
-        m.errors[key] = ModelParams[key]['step']
-    m.migrad()
-    print 'edm = ',m.edm, '(edm ~1 signifies convergence, edm > 1e2 is probably too high)'
-    
+    converge = False
+    CountA1 = 0
+    CountFail = 0
+    AbsoluteFail = False
+    while not converge:
+        if CountFail > 20:
+            print 'Failed'
+            AbsoluteFail = True
+            break
+        try:
+            m = minuit2.Minuit2(transit_chisquared(OpenParNames))
+            m.tol = tolnum #55.4720096  #*1e8
+            m.up = 1
+            m.strategy = 2
+            for key in m.values.keys():
+                m.values[key] = ModelParams[key]['value']
+                m.errors[key] = ModelParams[key]['step']
+            m.migrad()
+            #print 'edm = ',m.edm, '(edm < 1e-3 signifies convergence, edm > 1e2 is probably too high)'
+            #print m.edm, converge, tolnum, 1e-3*m.tol*m.up, m.ncalls
+            tolStatus = m.edm/(1e-3*m.tol*m.up)
+            if tolStatus <= 1e0:
+                if tolStatus == 1e0:
+                    CountA1 = 100
+                CountA1 += 1
+                if CountA1 <= 4:
+                    converge = False
+                else:
+                    converge = True
+                tolnum *= tolStatus
+                #CloseDict['a1'] = tolnum
+                w = 'a1 Good Convergence'
+            else:
+                converge = False
+                tolnum *= tolStatus
+                w = 'a2 Poor Convergence'
+                if np.isnan(tolStatus):
+                    CountFail += 1 
+            print tolStatus, m.edm, m.tol, tolnum, converge, w, CountFail
+        except:
+            if m.edm != None:
+                edm = m.edm
+            else:
+                edm = 1e-2*m.tol*m.up
+            if CountFail < 11:
+                tolStatus = (edm/(1e-3*m.tol*m.up))
+            elif CountFail > 11:
+                tolStatus = (edm/(1e-3*m.tol*m.up))**(-1)
+            else:
+                tolStatus = 10e0/tolnum
+            if tolStatus == 1.0:
+                tolStatus = 10e0
+            tolnum *= tolStatus
+            converge = False
+            CountFail += 1
+            print tolStatus, m.edm, m.tol, tolnum, converge, 'b Failed Convergence', CountFail
+            #raise
+
     for key in m.values.keys():
         ModelParams[key]['value'] = m.values[key]
         ModelParams[key]['step'] = m.errors[key]
-    
-    DOF = len(ObservedData['all']['y']) - len(OpenParNames)
-    PrintModelParams(ModelParams,OutFile)
-    OutFileObjectAppend = open(OutFile,'a')
-    print '# Best-fit ChiSQ = '+format(m.fval,'.2f')+' | Starting ChiSQ = ',format(startchi2,'.2f')
-    print '# DOF = '+format(DOF)
-    print '# Best-fit reduced ChiSQ = '+format(m.fval/DOF,'.2f')+' | Starting reduced ChiSQ = '+format(startchi2/DOF,'.2f')
-    OutFileObjectAppend.close()
+
+    if not AbsoluteFail:
+        DOF = len(ObservedData['all']['y']) - len(OpenParNames)
+        PrintModelParams(ModelParams,OutFile)
+        OutFileObjectAppend = open(OutFile,'a')
+        print >> OutFileObjectAppend, \
+        '# Best-fit ChiSQ = '+format(m.fval,'.2f')+' | Starting ChiSQ = ',format(startchi2,'.2f')
+        print >> OutFileObjectAppend, '# DOF = '+format(DOF)
+        print >> OutFileObjectAppend, \
+        '# Best-fit reduced ChiSQ = '+format(m.fval/DOF,'.2f')+' | Starting reduced ChiSQ = '+format(startchi2/DOF,'.2f')
+        OutFileObjectAppend.close()
     
 def f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams):
     """ Computes chisquared the same way its done in the mcmc routines. """
@@ -71,7 +123,7 @@ def f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams)
     else:
         chi2 = 1e308
         
-    print chi2
+    #print chi2
     return chi2
 
 class var_code:
@@ -99,6 +151,7 @@ class transit_chisquared:
         OpenParNames = pickle.load(dump6)
         for i in range(len(args)):
             ModelParams[OpenParNames[i]]['value'] = args[i]
+
         chi2 = f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams)
         #print len(args)
         return chi2

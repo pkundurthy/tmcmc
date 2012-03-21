@@ -2,6 +2,8 @@ from iomcmc import *
 import numpy as np
 import myboundfunc
 import sys
+import scipy
+
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
@@ -374,6 +376,7 @@ def getDTCOEFFlines(DetrendData):
     """
 
     """
+    
     line = ''
     for tag in DetrendData.keys():
         printl1 = ''
@@ -409,6 +412,7 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
                 # Normalizing by Model
                 yi0 = np.array(y0)/np.array(ymod0)
                 yierr0 = np.array(yerr0)/np.array(ymod0)
+                yerr = yierr0
                 B_MAT = yi0/yierr0      # dependent variable divided by errors
                 lenDataN = len(yierr0)
                 Npar = 0
@@ -425,9 +429,13 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
                             #print lenDataN, np.shape(IndependentVariable), np.shape(yierr0)
                             A_MAT = (IndependentVariable/yierr0).reshape(lenDataN,1)
                             Xi = IndependentVariable.reshape(lenDataN,1)
+                            Xi2 = Xi**2
                         else:
                             A_MAT = np.hstack((A_MAT,(IndependentVariable/yierr0).reshape(lenDataN,1)))
-                            Xi = np.hstack((Xi,IndependentVariable.reshape(lenDataN,1)))
+                            Xidummy = IndependentVariable.reshape(lenDataN,1)
+                            Xi = np.hstack((Xi,Xidummy))
+                            Xi2dummy = Xidummy**2
+                            Xi2 = np.hstack((Xi2,Xi2dummy))
                 #print np.shape(A_MAT), np.shape(B_MAT)
                 coeff_dict = {}
                 if Npar != 0:
@@ -437,23 +445,45 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
                     zeros = ones - 1e0
                     A_MAT = np.hstack( (A_MAT,zeros) )
                     Xi = np.hstack((Xi,zeros))
+                    Xi2 = np.hstack((Xi2,zeros))
+                    
                     #print np.shape(A_MAT), np.shape(Xi)
                     a_coeff = LinearLeastSq_coeff(A_MAT,B_MAT)
+                    a_coerr = LinearLeastSq_errors(A_MAT)
                     a_coeff_list = map(None,a_coeff.getA1())
                     XiMatrix = np.matrix(Xi)
+                    Xi2Matrix = np.matrix(Xi2)
                     a_coeffMatrix = np.matrix(a_coeff[:,0])
+                    maxXi2 = []
+
+                    a_coerrMatrix = np.matrix(a_coerr)
                     CorrectionFunction = XiMatrix*a_coeffMatrix
                     CorrectionFunction = CorrectionFunction.getA1()
+                    CorrectionError = Xi2Matrix*a_coerrMatrix.T
+                    CorrectionError = CorrectionError.getA1()
                     a_coeffOut = a_coeffMatrix.getA1()
                     DetrendedData0 = (y0 - CorrectionFunction + 1e0)
+                    #yerr = np.sqrt( np.array(yerr0)**2 + CorrectionError )
+                    yerr = np.sqrt( np.array(yerr0)**2 )
                     for el in nuisance_paramlist.keys():
-                        coeff_dict[nuisance_paramlist[el]] = a_coeff[el,0]
-                    coeff_dict['const'] = a_coeff[-1,0]
+                        coeff_dict[nuisance_paramlist[el]] = {'coeff':a_coeff[el,0],'coerr':a_coerr[el]}
+                    coeff_dict['const'] = {'coeff':a_coeff[-1,0],'coerr':0}
+
+                    for dtkey in coeff_dict.keys():
+                        if dtkey != 'const':
+                            data = NuisanceData[key]['dtparams'][dtkey]['data']
+                            #print data, dtkey, key
+                            maxd = np.max(data)
+                            coeff_dict[dtkey]['maxd'] = maxd
+                            #print maxd, dtkey, key, NuisanceData[key]['dtparams'][dtkey]['used']
+                            #maxcor = coeff_dict[dtkey]['coeff']*maxd
+                            #print key, dtkey,maxcor,coeff_dict[dtkey]['coerr']/maxcor
+                        coeff_dict['const']['maxd'] = 0e0
                 if Npar == 0:
                     CorrectionFunction = np.zeros(len(ymod0))
                     DetrendedData0 = (y0 - CorrectionFunction + 1e0)
-                DetrendedData[key] = {'x':x0,'y':DetrendedData0,'yerr':yerr0,'correction':CorrectionFunction,'dtcoeff':coeff_dict}
-                #print key, coeff_dict
+                DetrendedData[key] = \
+                {'x':x0,'y':DetrendedData0,'yerr':yerr,'correction':CorrectionFunction,'dtcoeff':coeff_dict}
         #print a_coeffOut
         all_detrended_x = []
         all_detrended_y = []
@@ -467,7 +497,11 @@ def DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
             all_detrended_yerr = np.hstack((all_detrended_yerr,DetrendedData[transit_tag]['yerr']))
             all_detrended_correction = np.hstack((all_detrended_correction,DetrendedData[transit_tag]['correction']))
 
-        DetrendedData['all'] = {'x':all_detrended_x,'y':all_detrended_y,'yerr':all_detrended_yerr,'correction':all_detrended_correction,'tagorder':ObservedData['all']['tagorder']}
+        DetrendedData['all'] = {'x':all_detrended_x,\
+                                'y':all_detrended_y,\
+                                'yerr':all_detrended_yerr,\
+                                'correction':all_detrended_correction,\
+                                'tagorder':ObservedData['all']['tagorder']}
 
         return DetrendedData
 
@@ -490,7 +524,7 @@ def LinearLeastSq_coeff(A,B):
     OutSolution = np.linalg.lstsq(AlphaMatrix,BetaMatrix)  # solving for linear-least square parameters
     return OutSolution[0]
     
-def LinearLeastSq_errors(A,B):
+def LinearLeastSq_errors(A):
     """ Performs Linear Least-Squares Minimization given the design matrix A and
         the observed data weighted by the errors (B).
         See Chapter 15.4 in Numerical Recipies in C (Second Edition)
@@ -502,17 +536,17 @@ def LinearLeastSq_errors(A,B):
     if len(shapeA) == 2:
         lengthID = 1
     AMatrix = np.matrix(A)
-    BMatrix = np.matrix(B)
     AMatrixTranspose = AMatrix.T
     AlphaMatrix = AMatrixTranspose*AMatrix
-    CMatrix = AlphaMatrix.I
-    print CMatrix
+    CMatrix = scipy.linalg.pinv2(AlphaMatrix)
     # solving for linear-least square parameters
-    return CMatrix
+
+    return CMatrix.diagonal()
 
 """ The Bounds Checking function """
 def ApplyBounds(ModelParams,BoundParams):
-    """ The main function which test if all the parameters are within the required bounds. Parameter values are taken from ModelParams and the bounding conditions are set in the BoundParams.
+    """ The main function which test if all the parameters are within the required bounds. 
+    Parameter values are taken from ModelParams and the bounding conditions are set in the BoundParams.
     
     Input - the tmcmc format ModelParams dictionary and the tmcmc format BoundParams dictionary
     Output - a Boolean True or False denoting whether the parameters are within bounds
@@ -524,7 +558,8 @@ def ApplyBounds(ModelParams,BoundParams):
         if BoundParams[key]['open']:
             exec "boundFlag = myboundfunc.%s(ModelParams)" % (key)
             boundchecklist.append(boundFlag)
-
+            #print "boundFlag = myboundfunc."+key+"(ModelParams)", boundFlag
+    
     for el in boundchecklist:
         if not el:
             withinbound = False

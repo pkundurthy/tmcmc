@@ -112,7 +112,7 @@ def GridBinning(x,y,yerr,bin):
     yerrout = []
     yerrmeanout = []
     npoints = []
-    print 'Grid size =',len(grid), 'Bin size = ',bin
+    print 'Data Size = ',len(x),'Grid size =',len(grid), 'Bin size = ',bin
     it = 0
     for key in grid.keys():
         condition = []

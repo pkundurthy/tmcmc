@@ -40,9 +40,9 @@ def returnTsub(TSTAMP,**kwargs):
 def Tfilter(TT,objectName):
 
     if objectName.lower() == 'xo2':
-        if TT.startswith('T_{2}'):
+        if TT.startswith('T_{1}'):
             TT = 'I'
-        elif TT.startswith('T_{8}'):
+        elif TT.startswith('T_{7}'):
             TT = 'r\''
     elif objectName.lower() == 'wasp2':
         if TT.startswith('T_{1}'):
@@ -261,9 +261,7 @@ def robust1sigma(x):
     return sigma
 
 def parTimeDay2Sec(pars,bestFitPars):
-    """
-    change times in parameters from days to seconds
-    """
+    """ change times in parameters from days to seconds """
     
     for par in pars.keys():
         if par.startswith('T0'):
@@ -286,8 +284,7 @@ def ShortenTT(parLabels):
     return parLabels
         
 def getxyparsFromParList(parList):
-    """
-    """
+    """                 """
     
     xp = parList[:-1]
     yp = parList[::-1][:-1]
@@ -295,9 +292,7 @@ def getxyparsFromParList(parList):
     return xp, yp
 
 def makeStatLabels(Stats,DataFile):
-    """
-    
-    """
+    """     """
     
     parList = getPars(DataFile)
     Npar = len(parList)
@@ -317,3 +312,92 @@ def makeStatLabels(Stats,DataFile):
                 pea = r'$|r|$='+\
                 format(abs(Stats['pear'][parName1][parName2]['value']),'0.2f')
                 StatLabels[iplot] = {'cov':cov,'spe':spe,'pea':pea}
+
+def getParFormat(name):
+    """ assign parameter string format """
+    
+    if name == 'tT' or name == 'tG' or \
+        name.startswith('v1.') or name.startswith('v2.') or \
+        name.startswith('u1.') or name.startswith('u2.') or \
+        name.startswith('RpRs.'):
+        parformat = '.4f'
+
+    if name.startswith('T0'):
+        parformat = '.6f'
+            
+    if name.startswith('D.'):
+        parformat = '.5f'
+
+    if name == 'inc' or name == 'b' or\
+       name == 'Period' or name == 'velRs' or\
+       name == 'aRs' or name == 'rho_star':
+        parformat = '.2f'
+
+    return parformat
+    
+def getEntryString(value,lower,upper,useSingle,parformat):
+    """                     """
+    
+    if useSingle:
+        errVal = np.max([lower,upper])
+        errStr = format(errVal,parformat)
+        ValStr = format(value,parformat)
+        EntryStr = r'%s $\pm$ %s' % (ValStr,errStr)
+    else:
+        if lower == upper:
+            errVal = np.max([lower,upper])
+            errStr = format(errVal,parformat)
+            ValStr = format(value,parformat)
+            EntryStr = r'%s $\pm$ %s' % (ValStr,errStr)
+        else:
+            errUpStr = format(upper,parformat)
+            errLowStr = format(lower,parformat)
+            ValStr = format(value,parformat)
+            EntryStr = r'%s$^{+%s}_{-%s}$' % (ValStr,errUpStr,errLowStr)
+
+    return EntryStr
+
+def getUnitString(name):
+    """              """
+    
+    NoUnits = '-'
+    if name == 'tT' or name == 'tG' or \
+        name.startswith('T0.'):
+        UnitString = 'days'
+    
+    if name.startswith('v1.') or name.startswith('v2.') or \
+        name.startswith('u1.') or name.startswith('u2.') or \
+        name.startswith('RpRs.') or name.startswith('D.') or \
+        name == 'b' or name == 'velRs' or name == 'aRs':
+        UnitString = NoUnits
+
+    if name == 'inc':
+        UnitString = 'deg'
+        
+    if name == 'Period':
+        UnitString = 'sec'
+        
+    if name == 'rho_star':
+        UnitString = 'g/cc'
+        
+    return UnitString
+
+class Parameter:
+    
+    def __init__(self, parName, value, upper, lower, useSingle, Object):
+
+        self.name = parName
+        self.value = value 
+        self.upper = upper
+        self.lower = lower
+        self.useSingle = useSingle
+
+        self.parformat = getParFormat(self.name)
+
+        self.EntryString = getEntryString(self.value,self.lower,self.lower,self.useSingle,self.parformat)
+        self.UnitString = getUnitString(self.name)
+
+        parLabelFormat = TransitParFormat([parName],objectname=Object.name)
+        parLabelFormat = ShortenTT(parLabelFormat)
+        self.axForm = parLabelFormat[self.name]['axForm']
+        self.LabelString = parLabelFormat[self.name]['label']
