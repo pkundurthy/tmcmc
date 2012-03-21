@@ -5,14 +5,11 @@ import tmcmc
 import random
 import numpy as np
 import cPickle as cP
+from tmcmc.workingfolder_setup import get_user_exec
 
-MainPath = '/astro/store/student-scratch1/pkundurthy/final_apostle/'
-PicklePath = MainPath+'PickleStuff/'
-ObjectList = ['WASP2','XO2','TRES3','GJ1214']
-DataPrepPath = MainPath+'DataPrep/'
-FigurePath = MainPath+'OtherFigures/'
-PaperFiguresPath = MainPath+'PaperFigures/'
-
+ExecList = get_user_exec()
+for Ex in ExecList:
+    exec(Ex)
 
 #FitType
 DateStrings =  cP.load(open(PicklePath+'DateInfo.pickle','rb'))

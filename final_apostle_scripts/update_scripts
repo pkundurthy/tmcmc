@@ -1,0 +1,4 @@
+#!/bin/csh
+
+rsync -avz /astro/store/student-scratch1/pkundurthy/final_apostle/mcmc_*.py .
+rsync -avz /astro/store/student-scratch1/pkundurthy/final_apostle/minuit_*.py .
