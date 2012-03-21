@@ -1,4 +1,4 @@
- Last Updated: 2012-Jan-24 10:40:15
+ Last Updated: 2012-Mar-21 03:21:50
 
 
 + myderivedfunc.py
@@ -8,8 +8,10 @@
 + postmcmc.py
      covcorStats(File, FileTag, **kwargs):
      sortStats(StatDict, stype):
+     plotChain(File1, **keywords):
      plotTrace(File1,File2, **keywords):
      autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
+     GelmanRubinConvergence(FileList,ModelFile,OutFile, **kwargs):
 
 + MTQ_2010.py
      MultiTransitQuick_circular_rprs_vm(ModelParams,ObservedData):
@@ -21,6 +23,36 @@
      MTQ_multidepth_tduration(ModelParams,ObservedData):
      MTQ_getDerivedParams(D,tT,tG,u1,u2,Period):
      MTQ_FilterParams(RefFilt,Tags,ModelParams):
+
++ DataFuncPrep.py
+     mkObsDataLine(ObservedData,index_i):
+     mkNusDataLine(NuisanceData,index_i):
+     LClineFromIndex(outdict,index_i):
+     dtlineFromIndex(outdict,index_i):
+     getTT(fileName,ObjectName):
+     getAP(fileName):
+     writeUpdatedNuisance(FileName, dt_data):
+     readNusFile(FileName):
+     readDataFile(DataFile):
+     ToBeBinned(ObjectName,TT):
+     getOpenNusPars(NuisanceData,TT):
+     mkNuisance(NuisanceData):
+     applyGoodIDs(ObservedData,NuisanceData,goodids):
+     BinnedData(outdata,binsize):
+     normalizeFluxRatio(outdata,T0,tT,tG):
+     writeLCFile(ObservedData,outfile):
+     SecondRejectOutliers(DetrendedData,ModelData,sigma,TT):
+     rejectOutliers(DetrendedData,ModelData,sigmas):
+     SwitchOFF(NuisanceData,OffList,TTagList):
+     getSwitchLine(ObjectName,TT,**kwargs):
+     chisq(Data,ModelData):
+     NOpen(ModelParams):
+     NTTs(ModelParams):
+     HiRes(ObservedData,Num):
+     get_optap(rms,TT):
+
++ workingfolder_setup.py
+     get_user_exec():
 
 + mcmc.py
      MakeMCMCheader(ModelParams):
@@ -35,6 +67,7 @@
      getDTCOEFFlines(DetrendData):
      DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
      LinearLeastSq_coeff(A,B):
+     LinearLeastSq_errors(A):
      ApplyBounds(ModelParams,BoundParams):
 
 + derived_MTQ_2011.py
@@ -93,6 +126,9 @@
      ShortenTT(parLabels):
      getxyparsFromParList(parList):
      makeStatLabels(Stats,DataFile):
+     getParFormat(name):
+     getEntryString(value,lower,upper,useSingle,parformat):
+     getUnitString(name):
 
 + func_example.py
      quad(ModelParams,ObservedData):
@@ -118,6 +154,7 @@
      printErrors(MCMCfile,BestfitFile,OutputFile):
      readDTfile(file,NuisONOFF):
      generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+     correctionFromMCMCBestFit(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
      correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
      correctionFromDTfile(file,NuisONOFF):
 
@@ -146,6 +183,12 @@
      axisTicks(rg0,rg1):
      subID(Coord,Nx,Ny):
      SimplifyGrid(xp,yp):
+
++ class_fitprep.py
+     OpenParArray(ModelParams):
+     MakeStartParams(ObjectName,FitID):
+     ApplyShift(StartParams,fitNum,Shift):
+     SwitchClosedAll(ModelParams):
 
 + binning.py
      MedianMeanOutlierRejection(indata, cutoff, choice):
