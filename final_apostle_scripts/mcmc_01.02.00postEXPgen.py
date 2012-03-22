@@ -1,5 +1,5 @@
 import tmcmc
-import class_fitprep as cfp
+from tmcmc import class_fitprep as cfp
 import sys
 
 RunFile = open('postExploreAll.csh','w')

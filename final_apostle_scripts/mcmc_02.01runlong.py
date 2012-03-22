@@ -1,7 +1,7 @@
 #!/astro/apps/pkg/python64/bin//python
 
 import tmcmc
-import class_fitprep as cfp
+from tmcmc import class_fitprep as cfp
 import sys
 
 def run_mcmc(ObjectName,Case,fitNum,nsteps):
