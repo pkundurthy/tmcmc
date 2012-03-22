@@ -30,4 +30,5 @@ if __name__ == '__main__':
     Case = sys.argv[2]
     fitNum = sys.argv[3]
     nsteps = float(sys.argv[4])
+    
     run_mcmc(ObjectName,Case,fitNum,nsteps)

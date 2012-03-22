@@ -154,16 +154,19 @@ class Object:
                                     self.case+'.'+self.fitNum+'.AutoCorStat'
                                     
             self.AutoCorFigRoot = self.casePath+self.name+'.'+\
-                                  self.case+'.'+self.fitNum+'.AutoCorFit.'
+                                  self.case+'.'+self.fitNum+'.AutoCorFit'
             
             self.TracePlotRoot = self.casePath+self.name+'.'+\
-                                 self.case+'.'+self.fitNum+'.TracePlot.'
+                                 self.case+'.'+self.fitNum+'.TracePlot'
                                   
             self.CovCorStatsRoot = self.casePath+self.name+'.'+\
                                    self.case+'.'+self.fitNum+'.CovCorStat'
             
             self.LowestChiSQFile = self.casePath+self.name+'.'+\
                                    self.case+'.'+self.fitNum+'.lowchisq.par'
+                                   
+            self.ParErrorFile = self.casePath+self.name+'.'+\
+                                   self.case+'.'+self.fitNum+'.lowchisq.err'
                                    
             self.DerivedFile = self.casePath+self.name+'.'+\
                                self.case+'.'+self.fitNum+'.'+\
@@ -178,6 +181,9 @@ class Object:
 
             self.DerivedLowestChiSQFile = self.casePath+self.name+'.'+\
                                           self.case+'.'+self.fitNum+'.lowchisq.derived.par'
+                                          
+            self.DerivedErrorFile = self.casePath+self.name+'.'+\
+                                    self.case+'.'+self.fitNum+'.lowchisq.derived.err'
 
         if self.fitMethod.lower() == 'minuit': 
 

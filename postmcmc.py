@@ -119,8 +119,8 @@ def plotChain(File1, **keywords):
                 i1 = d1['istep']
                 x1 = d1[key]
                 pp = plt.plot(i1,x1,'b.')
-                plt.title(key+' '+ftag)
-                plt.savefig(ftag+'.TRACE.par'+key+'.png')
+                plt.title('Trace for '+key)
+                plt.savefig(ftag+'.TRACE.par_'+key+'.png')
                 if not silent: print 'plotting Trace for '+key
                 plt.clf()
             except:
@@ -157,6 +157,7 @@ def plotTrace(File1,File2, **keywords):
                 plt.setp(pp,'markersize',8)
                 plt.setp(pp,'markerfacecolor','k')
                 pp = plt.plot(i2,x2,'r.')
+                #pp = plt.title('Trace for '+key)
                 plt.savefig(ftag+'.TRACE.par'+key+'.png')
                 if not silent: print 'plotting Trace for '+key
                 plt.clf()
@@ -223,14 +224,14 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
             corlen = jarr[corlen_index[0]]
             efflen = long(float(ChainLength)/float(corlen))
             if mkPlotsFlag:
-                print 'plotting acor', key
+                print 'plotting acor', ftag+'.ACOR.par_'+key+'.png'
                 plt.plot(jarr,cj,'b.')
                 plt.plot([corlen,corlen],[0,1],'k--')
                 plt.plot([0,max(jarr)],[0.5,0.5],'k--')
                 plt.xlabel('j (Lag)')
                 plt.ylabel('C (Auto-Correlation)')
-                plt.title(ftag+' Auto-Correlation for "'+key+'"')
-                plt.savefig(ftag+'.ACOR.par'+key+'.png')
+                plt.title('Auto-Correlation for "'+key+'"')
+                plt.savefig(ftag+'.ACOR.par_'+key+'.png')
                 plt.clf()
 
             print >> OutFileObject, '##'+key+'## Corr Length = '+format(corlen,'d')
