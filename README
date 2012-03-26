@@ -1,4 +1,4 @@
- Last Updated: 2012-Mar-21 03:21:50
+ Last Updated: 2012-Mar-22 15:08:01
 
 
 + myderivedfunc.py
@@ -110,6 +110,10 @@
      WriteNuisanceFile(OutFileName,file):
      WriteLCNUSoutlierRejection(OutFileTag,file,IngressTime,EgressTime):
 
++ ioTAP.py
+     ReadSingleTAP_DataFile(fileName):
+     readTAPMCMC_SplitSections(filename):
+
 + plotTransit.py
      returnTsub(TSTAMP,**kwargs):
      Tfilter(TT,objectName):
@@ -189,6 +193,8 @@
      MakeStartParams(ObjectName,FitID):
      ApplyShift(StartParams,fitNum,Shift):
      SwitchClosedAll(ModelParams):
+     readTAPdata(Path):
+     getTAPfitTables(casePath):
 
 + binning.py
      MedianMeanOutlierRejection(indata, cutoff, choice):

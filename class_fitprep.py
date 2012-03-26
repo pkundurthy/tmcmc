@@ -99,6 +99,31 @@ def SwitchClosedAll(ModelParams):
 
     return ModelParams
 
+def readTAPdata(Path):
+    """             """
+    
+    DT = {}
+    for fileName in os.listdir(Path):
+        if fileName.endswith('.lcdtx'):
+            SplitName = map(str, fileName.split('.'))
+            DT[SplitName[1].strip()] = tmcmc.ioTAP.ReadSingleTAP_DataFile(Path+'/'+fileName)
+
+    return DT
+        
+def getTAPfitTables(casePath):
+    """ return path to tex file """
+    
+    FitDict = {}
+    for top, dirs, files in os.walk(casePath):
+        if top == casePath:
+            Fits = dirs
+            for fitDir in Fits:
+                for fileName in os.listdir(casePath+'/'+fitDir):
+                    if fileName.endswith('tables.tex'):
+                        FitDict[fitDir] = casePath+'/'+fitDir+'/'+fileName
+
+    return FitDict
+
 class Object:
 
     def __init__(self, name):
@@ -202,7 +227,22 @@ class Object:
         exec(self.FuncExecString % self.FuncName)
         self.ModelData = ModelFunc(self.ModelParams,self.ObservedData)
         self.DetrendedData = tmcmc.mcmc.DetrendData(self.ObservedData,self.ModelData,self.NuisanceData,'',False)
+
+    def InitiateTAP(self):
         
+        self.case = 'TAP'
+        self.fitMethod = 'TAP'
+        self.casePath = MainPath+self.name+'/'+self.case+'/'
+        self.DetrendedData = readTAPdata(self.casePath)
+        self.FitTables = getTAPfitTables(self.casePath)
+        
+    def printTAP_Output(self):
+        
+        self.OutFileList = {}
+        for fit in self.FitTables.keys():
+            self.OutFileList[fit] = self.casePath+'TAP_'+fit+'.err'
+            tmcmc.ioTAP.print_TAPerr(self.FitTables[fit],self.OutFileList[fit])
+            
     def MakeBoundFile(self):
         """         """
 
@@ -298,7 +338,7 @@ class Object:
         self.HiResModelData = HRData
 
     def PlotPrep(self):
-        
+
         OutX = {}
         for TT in self.ObservedData.keys():
             if TT.startswith('T'):
@@ -310,15 +350,15 @@ class Object:
                 ymod = np.array(self.ModelData[TT]['y'])
                 xhimod = np.array(self.HiResModelData[TT]['x']) - self.ModelParams['T0.'+TT]['value']
                 yhimod = np.array(self.HiResModelData[TT]['y'])
-                
+
                 OutX[TT] = {'x':xobs,'yobs':yobs,'yerrobs':yerrobs,'ydt':ydt,'yerrdt':yerrdt,'ymod':ymod,\
                             'xhiresmod':xhimod,'yhiresmod':yhimod}
-         
+
         self.PlotData = OutX
-        
+
     def printDetrendedData(self):
         """             """
-        
+
         self.DetrendedDataPath = MainPath+self.name+'/TAP/'
         for TT in self.DetrendedData.keys():
             if TT.startswith('T'):
@@ -334,7 +374,7 @@ class Object:
                     print >> LCOutFile, lineStr
 
 class chainPrep:
-    
+
     def __init__(self,Object,**kwargs):
 
         self.ObservedData = tmcmc.mcmc.ReadMultiList(Object.lcFileList)
@@ -351,4 +391,3 @@ class chainPrep:
 
         self.ModelParams = SwitchClosedAll(self.ModelParams0)
         self.ModelParams[ParamName]['open'] = True
-        

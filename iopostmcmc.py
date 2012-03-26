@@ -29,9 +29,7 @@ def readStatHeaders(FileName):
     return col, row
             
 def readStatsFile(FileName):
-    """
-    
-    """
+    """         """
     
     ColN, RowN = readStatHeaders(FileName)
     fileObj = open(FileName,'r')
@@ -53,9 +51,7 @@ def readStatsFile(FileName):
     return Dict
     
 def readALLStats(**kwargs):
-    """
-        read data from stats files
-    """
+    """     read data from stats files  """
 
     fileList = {}
     if len(kwargs) > 0:
@@ -85,9 +81,7 @@ def readALLStats(**kwargs):
     return Stats
 
 def isNonParam(key):
-    """
-        checks if a given MCMC data key is not a model parameter.
-    """
+    """ checks if a given MCMC data key is not a model parameter. """
     
     if key == 'acr' or key == 'frac' or key == 'chi1'\
     or key == 'chi2' or key == 'istep':
@@ -203,7 +197,7 @@ def read1parMCMC(filename,parname, **kwargs):
             
     return out_data
             
-def cropMCMCnew(mcmcfile,outfile,cropperc):
+def cropMCMC(mcmcfile,outfile,cropperc,NumCropLine):
     """ Removes the "burn-in" phase of the MCMC and writes a 
     shortened MCMC data file 
     """
@@ -214,25 +208,28 @@ def cropMCMCnew(mcmcfile,outfile,cropperc):
     outfileObject = open(outfile,'w')
     mcmcfileobj = open(mcmcfile,'r')
     mcmcfileobj = mcmcfileobj.readlines()
-    backCount = len(mcmcfileobj)-1
-    while backCount > 0:
-        line = mcmcfileobj[backCount]
+    
+    NLine = 0
+    for line in mcmcfileobj:
+        NLine += 1
         if line.startswith('#'):
             print >> outfileObject, line.strip('\n')
-        if not line.startswith('#'):
-            data_line = ReadMCMCline(line,hdrkeys)
-            if Nparams == 1:
-                if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
-                    print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
-                    print >> outfileObject, line.strip('\n')
-            if Nparams > 1:
-                if data_line['acr'] > 0.23-cropperc and data_line['acr'] < 0.23+cropperc:
-                    print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
-                    print >> outfileObject, line.strip('\n')
+        
+        if NLine > NumCropLine:
+            if not line.startswith('#'):
+                data_line = ReadMCMCline(line,hdrkeys)
+                if Nparams == 1:
+                    if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
+                        print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                        print >> outfileObject, line.strip('\n')
+                if Nparams > 1:
+                    if data_line['acr'] > 0.23-cropperc and data_line['acr'] < 0.23+cropperc:
+                        print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                        print >> outfileObject, line.strip('\n')
 
     outfileObject.close()
-            
-def cropMCMC(mcmcfile,outfile,cropperc):
+
+def cropMCMC_old(mcmcfile,outfile,cropperc):
     """ Removes the "burn-in" phase of the MCMC and writes a 
     shortened MCMC data file 
     """
@@ -346,7 +343,13 @@ def printErrors(MCMCfile,BestfitFile,OutputFile):
             format(low15,BestFitParams[param]['printformat'])+'|'+\
             format(upp84,BestFitParams[param]['printformat'])+'|'+\
             str(useSingle)+'|:'
-
+        else:
+            if param.lower() != 'reffilt':
+                print >> OutFileObject, param+'|'+\
+                format(BestFitParams[param]['value'],BestFitParams[param]['printformat'])+'|'+\
+                format(float('nan'),BestFitParams[param]['printformat'])+'|'+\
+                format(float('nan'),BestFitParams[param]['printformat'])+'|'+\
+                str(True)+'|:'
     OutFileObject.close()
     
 def readDTfile(file,NuisONOFF):

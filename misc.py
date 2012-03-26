@@ -19,6 +19,9 @@ def format(str, form):
         form ='d'
     return eval(' \'%s%s\' %s (%s)' % ('%', form, '%', str))
 
+def quickMean(itr):
+    
+    return num.sum(itr)/len(itr)
 
 def linefitquick_werr(x,y,yerr):
     """

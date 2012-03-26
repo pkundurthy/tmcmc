@@ -17,7 +17,7 @@ def run_post_mcmc(ObjectName,Case,fitNum,Stage):
     # cropping
     if Stage == 0 or Stage == 1:
         print 'Cropping MCMC'
-        tmcmc.iopostmcmc.cropMCMC(Object.OutFitFile,Object.CroppedFileName,0.05)
+        tmcmc.iopostmcmc.cropMCMC(Object.OutFitFile,Object.CroppedFileName,0.05,1e5)
 
     # auto-correlation & statistics
     if Stage == 0 or Stage == 2:
@@ -25,9 +25,10 @@ def run_post_mcmc(ObjectName,Case,fitNum,Stage):
         lowtol = 0.01
         jmax = 5000
         makePlotsFlag = True
+        res = 1
         tmcmc.postmcmc.autocorMCMC(Object.CroppedFileName,lowtol,jmax,\
-                                   Object.AutoCorStatsFile,makePlotsFlag,Silent=False,\
-                                   ftag=Object.AutoCorFigRoot)
+                                   Object.AutoCorStatsFile,makePlotsFlag,silent=False,\
+                                   ftag=Object.AutoCorFigRoot,resolution=res,dynamic=True)
     # print trace figures
     if Stage == 0 or Stage == 3:
         print 'Trace Plots'

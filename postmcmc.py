@@ -6,9 +6,12 @@ from iopostmcmc import isNonParam
 from matplotlib import pyplot as plt
 import itertools
 import sys
+import time
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
-    
+
+from tmcmc.misc import quickMean
+
 def covcorStats(File, FileTag, **kwargs):
     """ Given MCMC parameters, this function computes
         the covariance between parameters, the pearson's correlation 
@@ -27,55 +30,74 @@ def covcorStats(File, FileTag, **kwargs):
     #print >> OutFileObject, '#  par1   |  par2   |  cov   | pearson\'s r  | spearman\'s r '
     topline = '#'
     passCount = 0
-    hdrKeys1 = readMCMChdr(File)
-    hdrKeys2 = readMCMChdr(File)
-    
-    for i1 in hdrKeys1.keys():
-        key1 = hdrKeys1[i1]
-        if isNonParam(key1):
-            pass
-        else:
-            covline = ''
-            pcorline = ''
-            scorline = ''
-            for i2 in hdrKeys2.keys():
-                key2 = hdrKeys2[i2]
-                if isNonParam(key2):
-                    pass
+    hdrKeys = readMCMChdr(File)
+    parList1 = []
+    parList2 = []
+    for i in hdrKeys.keys():
+        key = hdrKeys[i]
+        if not isNonParam(key):
+            parList1.append(key)
+            parList2.append(key)
+
+    ComboList = []
+    ComboDict = {}
+    for par1 in parList1: 
+        covline = ''
+        pcorline = ''
+        scorline = ''
+        for par2 in parList2:
+            t0 = time.time()
+            #x1 = np.arange(10)
+            Combo = (par1,par2)
+            if not Combo[::-1] in ComboList:
+                if par1 == par2:
+                    d1 = read1parMCMC(File,par1,derived=DFlag)
+                    x1 = np.array(d1[par1])
+                    x2 = x1
                 else:
-                    d1 = read1parMCMC(File,key1,derived=DFlag)
-                    d2 = read1parMCMC(File,key2,derived=DFlag)
-                    if passCount == 0: topline = topline+5*' '+key2
-                    cov = np.cov(d1[key1],d2[key2])
-                    pcor = scipy.stats.pearsonr(np.array(d1[key1]),np.array(d2[key2]))
-                    scor = scipy.stats.spearmanr(np.array(d1[key1]),np.array(d2[key2]))
-                    print key1, key2
-                    covline = covline+' '+format(cov[0][1],'+.2e')
-                    pcorline = pcorline+' '+format(pcor[0],'+.2e')
-                    scorline = scorline+' '+format(scor[0],'+.2e')
-            if passCount == 0:
-                print >> OutFileObject_COV, topline
-                print >> OutFileObject_COV, '#'+88*'-'
-                print >> OutFileObject_PR, topline
-                print >> OutFileObject_PR, '#'+88*'-'
-                print >> OutFileObject_SR, topline
-                print >> OutFileObject_SR, '#'+88*'-'
-            lenkey = len(key1)
-            if lenkey < 10:
-                fac = 10-lenkey
+                    d1 = read1parMCMC(File,par1,derived=DFlag)
+                    x1 = np.array(d1[par1])
+                    d2 = read1parMCMC(File,par2,derived=DFlag)
+                    x2 = np.array(d2[par2])
+                ComboList.append((par1,par2))
+                cov = np.cov(x1,x2)
+                pcor = scipy.stats.pearsonr(x1,x2)
+                scor = scipy.stats.spearmanr(x1,x2)
+                ComboDict[Combo] = {'cov':cov,'pcor':pcor,'scor':scor}
             else:
-                fac = 10
-            print >> OutFileObject_COV, key1+fac*' '+' | '+covline
-            print >> OutFileObject_PR, key1+fac*' '+' | '+pcorline
-            print >> OutFileObject_SR, key1+fac*' '+' | '+scorline
-            passCount += 1
-    
+                cov = ComboDict[Combo[::-1]]['cov']
+                pcor = ComboDict[Combo[::-1]]['pcor']
+                scor = ComboDict[Combo[::-1]]['scor']
+
+            #x2 = np.arange(10)
+            t1 = time.time()
+            print par1, par2, t1-t0
+            covline = covline+' '+format(cov[0][1],'+.2e')
+            pcorline = pcorline+' '+format(pcor[0],'+.2e')
+            scorline = scorline+' '+format(scor[0],'+.2e')
+            if passCount == 0: topline = topline+5*' '+par2 
+        if passCount == 0:
+            print >> OutFileObject_COV, topline
+            print >> OutFileObject_COV, '#'+88*'-'
+            print >> OutFileObject_PR, topline
+            print >> OutFileObject_PR, '#'+88*'-'
+            print >> OutFileObject_SR, topline
+            print >> OutFileObject_SR, '#'+88*'-'
+        lenkey = len(par1)
+        if lenkey < 10:
+            fac = 10-lenkey
+        else:
+            fac = 10
+        print >> OutFileObject_COV, par1+fac*' '+' | '+covline
+        print >> OutFileObject_PR, par1+fac*' '+' | '+pcorline
+        print >> OutFileObject_SR, par1+fac*' '+' | '+scorline
+        passCount += 1
+
     OutFileObject_COV.close()
     OutFileObject_PR.close()
     OutFileObject_SR.close()
-    
+
 def sortStats(StatDict, stype):
-    
 
     keys = StatDict[stype].keys()
     comboList = []
@@ -171,6 +193,117 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
     #ftag = ''
     ftag = 'mcmc'
     silent = False
+    Nres = 1
+    Jstep = Nres
+    SetDynamic = False
+    for keyw in keywords:
+        if keyw == 'ftag':
+            ftag = keywords[keyw]
+        if keyw.lower() == 'silent':
+            silent = keywords[keyw]
+        if keyw.lower().startswith('res'):
+            Nres = keywords[keyw]
+        if keyw.lower().startswith('dyn'):
+            SetDynamic = keywords[keyw]
+            
+    chain_stats = {}
+    OutFileObject = open(OutStatFile,'w')
+    hdrKeys = readMCMChdr(File)
+    
+    ParList = []
+    for i in hdrKeys.keys():
+        key = hdrKeys[i]
+        if not isNonParam(key):
+            ParList.append(key)
+
+    for key in ParList:
+        data = read1parMCMC(File,key)
+        if not silent: print 'Par '+key
+        x1 = np.array(data[key])-np.median(data[key])
+        cj = []             # auto-correlation
+        jarr = []           # lag
+        # starting auto-correlation, set to be much higher than tolerance
+        val = 1e0
+        j = 0
+        szx1 = len(x1)
+        sli0 = 0
+        slj1 = szx1-1
+        while val > lowtol and j < jmax:
+            sli1 = szx1-j-1
+            slj0 = j
+            #t0 = time.time()
+            x1i_x1ipj = x1[sli0:sli1]*x1[slj0:slj1]
+            x1i_sq = (x1[sli0:sli1]*x1[sli0:sli1])
+            x1i = (x1[sli0:sli1])
+            mean_x1i_x1ipj = np.mean(x1i_x1ipj)
+            mean_x1i = np.mean(x1i)
+            mean_x1i_sq = np.mean(x1i_sq) 
+            #mean_x1i_x1ipj = quickMean(x1i_x1ipj)
+            #mean_x1i = quickMean(x1i)
+            #mean_x1i_sq = quickMean(x1i_sq) 
+            val = (mean_x1i_x1ipj - (mean_x1i)**2)/\
+                  (mean_x1i_sq - (mean_x1i)**2)
+            #t1 = time.time()
+            if j > 0 and SetDynamic:
+                dc_dj = np.abs( (cj[-1]-val)/(jarr[-1]-j))
+                if (val > 0.45) and (val < 0.55):
+                    scale = 0.005
+                else:
+                    scale = 0.01
+                Jstep = long(round(scale/dc_dj))
+                #print t1-t0,j,val, dc_dj, 0.01/(dc_dj), Jstep
+                if Jstep < 1: 
+                    Jstep = 1
+                elif Jstep > 100:
+                    Jstep = 100
+            cj.append(val)
+            jarr.append(j)
+            if SetDynamic:
+                j += Jstep
+            else:
+                j += Nres
+
+        cj = np.array(cj)
+        jarr = np.array(jarr)
+        ChainLength = szx1
+        corlen_index = np.where( np.abs(cj-0.5e0) == np.min( np.abs(cj-0.5e0)) )[0]
+        corlen = jarr[corlen_index[0]]
+        efflen = long(float(ChainLength)/float(corlen))
+        if mkPlotsFlag:
+            print 'plotting acor', ftag+'.ACOR.par_'+key+'.png'
+            plt.plot(jarr,cj,'b.')
+            plt.plot([corlen,corlen],[0,1],'k--')
+            plt.plot([0,max(jarr)],[0.5,0.5],'k--')
+            plt.xlabel('j (Lag)')
+            plt.ylabel('C (Auto-Correlation)')
+            plt.title('Auto-Correlation for "'+key+'"')
+            plt.savefig(ftag+'.ACOR.par_'+key+'.png')
+            plt.clf()
+
+        print >> OutFileObject, '##'+key+'## Corr Length = '+format(corlen,'d')
+        print >> OutFileObject, '##'+key+'## Eff Length = '+format(efflen,'d')
+        chain_stats[key] = {'corlength':corlen,'efflength':efflen}
+
+    clen = []
+    elen = []
+    for key in chain_stats.keys():
+        clen.append(chain_stats[key]['corlength'])
+        elen.append(chain_stats[key]['efflength'])
+    if not silent:
+        print '## ALL ## Chain Length = '+format(ChainLength,'d')
+        print '## ALL ## Corr Length = '+format(max(clen),'d')
+        print '## ALL ## Eff Length = '+format(min(elen),'d')
+    print >> OutFileObject, '## ALL ## Chain Length = '+format(ChainLength,'d')
+    print >> OutFileObject, '## ALL ## Corr Length = '+format(max(clen),'d')
+    print >> OutFileObject, '## ALL ## Eff Length = '+format(min(elen),'d')
+    OutFileObject.close()
+
+def autocorMCMC_old(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
+    """ Compute the auto-correlation of parameters in a chain """
+    
+    #ftag = ''
+    ftag = 'mcmc'
+    silent = False
     for keyw in keywords:
         if keyw == 'ftag':
             ftag = keywords[keyw]
@@ -189,16 +322,17 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
             pass
         else:
             data = read1parMCMC(File,key)
-            ChainLength = len(data['istep'])
+            #ChainLength = len(data['istep'])
             #print np.shape(data['istep'])
             if not silent: print 'Par '+key
-            for i in range(ChainLength):
-                x.append(data[key][i])
+            #x = np.array(data[key])
+            #for i in range(ChainLength):
+                #x.append(data[key][i])
             median_x = np.median(x)
             # removing median value
-            x1 = np.array(x)-median_x
-            cj = []                    # auto-correlation
-            jarr = []                  # lag
+            x1 = np.array(data[key])-median_x
+            cj = []             # auto-correlation
+            jarr = []           # lag
             # starting auto-correlation, set to be much higher than tolerance
             cval = 1e0
             j = 0
@@ -213,7 +347,7 @@ def autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
                 x1i_sq = (x1[sli0:sli1]*x1[sli0:sli1])
                 x1i = (x1[sli0:sli1])
                 val = (np.mean(x1i_x1ipj) - (np.mean(x1i))**2)/\
-                (np.mean(x1i_sq) - (np.mean(x1i))**2)
+                      (np.mean(x1i_sq) - (np.mean(x1i))**2)
                 cj.append(val)
                 jarr.append(j)
                 cval = val
