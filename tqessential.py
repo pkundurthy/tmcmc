@@ -332,7 +332,12 @@ def computeRpRs(u1,u2,tT,tG,D):
         a5 = -1.0e0*(u1+2.0e0*u2)/(u2*np.sqrt(tT/tG))
         a4 = -1.0e0*(1.0e0-u1-u2)/(u2*tT/tG)
         a0 = D*(1e0-u1/3e0-u2/6e0)/(u2*tT/tG)
-        RpRs = (newtraph6(0.3,a5,a4,a0))**2e0
+        disc = -1e0*(a0**3)* \
+            (46656e0*(a0**2) + 13824e0*(a0*(a4**3)) + 1024e0*(a4**6) - \
+                 43200e0*(a0*(a4**2)*(a5**2)) - 256e0*((a4**5)*(a5**2)) + \
+                 22500e0*(a0*a4*(a5**4)) - 3125e0*(a0*(a5**6)))
+        if disc <= 0.0: RpRs = float('inf')
+        else: RpRs = (newtraph6(0.3,a5,a4,a0))**2e0
     else:
         RpRs = float('inf')
 
