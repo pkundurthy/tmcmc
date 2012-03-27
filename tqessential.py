@@ -308,6 +308,7 @@ def newtraph6(x,a5,a4,a0):
     f['f'] = 1e0
     f['df'] = 1e0
     while abs(f['f']/f['df']) > tol:
+        #print f['f'],f['df'],abs(f['f']/f['df']),x
         f = tqsextic(x,a5,a4,a0)
         x = x - f['f']/f['df']
 
@@ -414,7 +415,7 @@ def TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
     """
         Computes transit lightcurve.
     """
-    
+
     # RpRs = tqe.MTQ_getRpRs(u1,u2,tT,tG,D)
     th = (2e0*np.pi/Period)*(timeIn-T0)
     z0 = aRs*np.sqrt(1e0 - (np.cos(th)*np.sin(inc))**2e0)

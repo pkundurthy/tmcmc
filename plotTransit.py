@@ -66,7 +66,7 @@ def TForm(parName,**kwargs):
         TT = ''
         Sym = ''
         for i in range(len(msplit)):
-            if i > 0: 
+            if i > 0:
                 TT += returnTsub(msplit[i]).strip('$')+' '
         for key in kwargs:
             if key.lower().startswith('object'):
@@ -78,6 +78,22 @@ def TForm(parName,**kwargs):
                 TT = TT[:-2]
                 Sym = r'$D_{\textrm{%s}}$' % (TT)
         parSym = Sym
+        AxFormat = FormatStrFormatter('%.4f')
+    elif parName.startswith('u1.') or parName.startswith('u2.'):
+        msplit = map(str,parName.split('.'))
+        TT = ''
+        for i in range(len(msplit)):
+            if i > 0:
+                TT += returnTsub(msplit[i]).strip('$')+' '
+        for key in kwargs:
+            if key.lower().startswith('object'):
+                objectName = kwargs[key]
+                TT = Tfilter(TT,objectName)
+            else:
+                pass
+        symb = msplit[0][0]
+        subs = msplit[0][1]
+        parSym = r'$%s_%s{\textrm{(%s)}}$' % (symb,subs,TT)
         AxFormat = FormatStrFormatter('%.4f')
     elif parName.startswith('v1.') or parName.startswith('v2.'):
         msplit = map(str,parName.split('.'))
@@ -125,6 +141,16 @@ def TForm(parName,**kwargs):
     elif parName.startswith('rho'):
         parSym = r'$\rho_{*}$'
         AxFormat = FormatStrFormatter('%.2f')
+    elif parName.startswith('sigwhite'):
+        parSplit = map(str,parName.split('.'))
+        Num = parSplit[1].strip('T')
+        parSym = '$\sigma_{w,T%s}$' % Num
+        AxFormat = FormatStrFormatter('%.4f')
+    elif parName.startswith('sigred'):
+        parSplit = map(str,parName.split('.'))
+        Num = parSplit[1].strip('T')
+        parSym = '$\sigma_{r,%s}$' % Num
+        AxFormat = FormatStrFormatter('%.4f')
     else:
         parSym = parName
         AxFormat = None
