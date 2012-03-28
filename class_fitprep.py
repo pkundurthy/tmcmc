@@ -12,7 +12,8 @@ for Ex in ExecList:
     exec(Ex)
 
 #FitType
-DateStrings =  cP.load(open(PicklePath+'DateInfo.pickle','rb'))
+#DateStrings =  cP.load(open(PicklePath+'DateInfo.pickle','rb'))
+DateStrings =  cP.load(open(PicklePath+'DateString.pickle','rb'))
 ParDict = cP.load(open(PicklePath+'MCMC_MINUIT_StartInfo.pickle','rb'))
 ExpectedTT = cP.load(open(PicklePath+'ExpectedTT.pickle','rb'))
 #FirstOptAp = cP.load(open(PicklePath+'OptApGuess.pickle','rb'))
