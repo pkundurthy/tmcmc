@@ -21,8 +21,7 @@ def get_user_exec():
                         "FigurePath = MainPath+\'OtherFigures/\'",\
                         "PaperFiguresPath = MainPath+\'PaperFigures/\'"]
     else:
-        raise NameError("Unknown user %s detected" % user)
+        raise NameError("Unknown user %s" % user)
     
 
     return ExecStatements
-    

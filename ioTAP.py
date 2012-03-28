@@ -123,7 +123,7 @@ def FilterCheck(LinkData):
             ValueStrip = LinkData[TT][par]['value'].strip()
             if par == 'RpRs':
                 FiltList.append(ValueStrip)
-                
+
     UniqueFilter = list(set(FiltList))
     FiltDict = {}
     for filt in UniqueFilter:

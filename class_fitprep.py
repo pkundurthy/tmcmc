@@ -40,6 +40,8 @@ def MakeStartParams(ObjectName,FitID):
     StartParams = {}
     for key in CommonAll:
         StartParams[key] = ParDict[ObjectName][key]
+        if key == 'RefFilt':
+            StartParams[key]['value'] = float('nan')
         
     for key in ParDict[ObjectName].keys():
         if key.startswith('NT.') or key.startswith('T0.'):
@@ -156,69 +158,48 @@ class Object:
         
         self.fitNum = str(fitNum).zfill(4)
         self.StartFile = self.objectPath+'START.'+self.name+'.'+self.fitID+'.'+self.fitNum+'.par'
-                                  
-        self.ErrorFile = self.casePath+self.name+'.'+\
-                         self.case+'.'+self.fitNum+'.'+\
-                         self.fitMethod+'.err'
-        
-        self.ErrorDerivedFile = self.casePath+self.name+'.'+\
-                                self.case+'.'+self.fitNum+'.'+\
-                                self.fitMethod+'.derived.err'
+
+        FileRoot = self.casePath+self.name+'.'+self.case+'.'+self.fitNum
+        self.ErrorFile = FileRoot+self.fitMethod+'.err'
+        self.ErrorDerivedFile = FileRoot+self.fitMethod+'.derived.err'
         
         if self.fitMethod.lower() == 'mcmc':
 
-            self.OutFitFile = self.casePath+self.name+'.'+\
-                              self.case+'.'+self.fitNum+'.'+\
-                              self.fitMethod
-                              
-            self.CroppedFileName = self.casePath+self.name+'.'+\
-                                self.case+'.'+self.fitNum+'.crop.'+\
-                                self.fitMethod
-                                
-            self.AutoCorStatsFile = self.casePath+self.name+'.'+\
-                                    self.case+'.'+self.fitNum+'.AutoCorStat'
-                                    
-            self.AutoCorFigRoot = self.casePath+self.name+'.'+\
-                                  self.case+'.'+self.fitNum+'.AutoCorFit'
-            
-            self.TracePlotRoot = self.casePath+self.name+'.'+\
-                                 self.case+'.'+self.fitNum+'.TracePlot'
-                                  
-            self.CovCorStatsRoot = self.casePath+self.name+'.'+\
-                                   self.case+'.'+self.fitNum+'.CovCorStat'
-            
-            self.LowestChiSQFile = self.casePath+self.name+'.'+\
-                                   self.case+'.'+self.fitNum+'.lowchisq.par'
-                                   
-            self.ParErrorFile = self.casePath+self.name+'.'+\
-                                   self.case+'.'+self.fitNum+'.lowchisq.err'
-                                   
-            self.DerivedFile = self.casePath+self.name+'.'+\
-                               self.case+'.'+self.fitNum+'.'+\
-                               self.fitMethod+'.derived.'+self.fitMethod
-                               
-            self.CroppedDerivedFile = self.casePath+self.name+'.'+\
-                                      self.case+'.'+self.fitNum+'.'+\
-                                      self.fitMethod+'.derived.crop.'+self.fitMethod
-            
-            self.DerivedCovCorStatsRoot = self.casePath+self.name+'.'+\
-                                          self.case+'.'+self.fitNum+'.derived.CovCorStat'
+            self.OutFitFile = FileRoot+'.'+self.fitMethod
 
-            self.DerivedLowestChiSQFile = self.casePath+self.name+'.'+\
-                                          self.case+'.'+self.fitNum+'.lowchisq.derived.par'
-                                          
-            self.DerivedErrorFile = self.casePath+self.name+'.'+\
-                                    self.case+'.'+self.fitNum+'.lowchisq.derived.err'
+            self.CroppedFileName = FileRoot+'.crop.'+self.fitMethod
+
+            self.AutoCorStatsFile = FileRoot+'.AutoCorStat'
+
+            self.AutoCorFigRoot = FileRoot+'.AutoCorFit'
+
+            self.TracePlotRoot = FileRoot+'.TracePlot'
+
+            self.CovCorStatsRoot = FileRoot+'.CovCorStat'
+
+            self.LowestChiSQFile = FileRoot+'.lowchisq.par'
+
+            self.ParErrorFile = FileRoot+'.lowchisq.err'
+
+            self.DerivedFile = FileRoot+'.'+self.fitMethod+'.derived.'+self.fitMethod
+
+            self.CroppedDerivedFile = FileRoot+'.'+self.fitMethod+'.derived.crop.'+self.fitMethod
+
+            self.DerivedCovCorStatsRoot = FileRoot+'.derived.CovCorStat'
+
+            self.DerivedLowestChiSQFile = FileRoot+'.lowchisq.derived.par'
+
+            self.DerivedErrorFile = FileRoot+'.lowchisq.derived.err'
+
+            self.OutParFile = self.LowestChiSQFile
 
         if self.fitMethod.lower() == 'minuit': 
 
-            self.OutFitFile = self.casePath+self.name+'.'+\
-                              self.case+'.'+self.fitNum+'.'+\
-                              self.fitMethod+'.par'
+            self.OutParFile = FileRoot+'.'+self.fitMethod+'.par'
+
+            self.OutFitFile = self.OutParFile
  
-            self.DerivedFile = self.casePath+self.name+'.'+\
-                               self.case+'.'+self.fitNum+'.'+\
-                               self.fitMethod+'.derived.'+self.fitMethod+'.par'
+            self.DerivedFile = FileRoot+'.'+self.fitMethod+'.derived.'+self.fitMethod+'.par'
 
     def InitiateData(self):
 
@@ -299,7 +280,7 @@ class Object:
 
     def UpdateModelParams(self):
 
-        self.ModelParams = tmcmc.iomcmc.ReadStartParams(self.OutFitFile)
+        self.ModelParams = tmcmc.iomcmc.ReadStartParams(self.OutParFile)
 
     def HiResModelLC(self, **kwargs):
 
@@ -337,25 +318,6 @@ class Object:
 
         self.HiResModelData = HRData
 
-    def PlotPrep(self):
-
-        OutX = {}
-        for TT in self.ObservedData.keys():
-            if TT.startswith('T'):
-                xobs = np.array(self.ObservedData[TT]['x']) - self.ModelParams['T0.'+TT]['value']
-                yobs = np.array(self.ObservedData[TT]['y'])
-                yerrobs = np.array(self.ObservedData[TT]['yerr'])
-                ydt = np.array(self.DetrendedData[TT]['y'])
-                yerrdt = np.array(self.DetrendedData[TT]['yerr'])
-                ymod = np.array(self.ModelData[TT]['y'])
-                xhimod = np.array(self.HiResModelData[TT]['x']) - self.ModelParams['T0.'+TT]['value']
-                yhimod = np.array(self.HiResModelData[TT]['y'])
-
-                OutX[TT] = {'x':xobs,'yobs':yobs,'yerrobs':yerrobs,'ydt':ydt,'yerrdt':yerrdt,'ymod':ymod,\
-                            'xhiresmod':xhimod,'yhiresmod':yhimod}
-
-        self.PlotData = OutX
-
     def printDetrendedData(self):
         """             """
 
@@ -372,6 +334,58 @@ class Object:
                     FluxStrErr = format(self.DetrendedData[TT]['yerr'][i],'.12f')
                     lineStr = timeStr+','+FluxStr+','+FluxStrErr
                     print >> LCOutFile, lineStr
+
+class PlotPrep:
+    
+    def __init__(self, Object):
+    
+        self.Object = Object
+    
+    def initLCPlotData(self):
+
+        OutX = {}
+        for TT in self.Object.ObservedData.keys():
+            if TT.startswith('T'):
+                xobs = np.array(self.Object.ObservedData[TT]['x']) - self.Object.ModelParams['T0.'+TT]['value']
+                yobs = np.array(self.Object.ObservedData[TT]['y'])
+                yerrobs = np.array(self.Object.ObservedData[TT]['yerr'])
+                ydt = np.array(self.Object.DetrendedData[TT]['y'])
+                yerrdt = np.array(self.Object.DetrendedData[TT]['yerr'])
+                ymod = np.array(self.Object.ModelData[TT]['y'])
+                xhimod = np.array(self.Object.HiResModelData[TT]['x']) - self.Object.ModelParams['T0.'+TT]['value']
+                yhimod = np.array(self.Object.HiResModelData[TT]['y'])
+    
+                OutX[TT] = {'x':xobs,'yobs':yobs,'yerrobs':yerrobs,'ydt':ydt,'yerrdt':yerrdt,'ymod':ymod,\
+                            'xhiresmod':xhimod,'yhiresmod':yhimod}
+
+        self.PlotData = OutX
+
+    def initMCMCPlot(self,ParList,**kwargs):
+        
+        xpars = ParList[:-1]
+        revX = xp[::-1]
+        ypars = ParList[::-1][:-1]
+
+        for key in kwargs:
+            if key.lower() == 'ypars':
+                xpars = ParList
+                ypars = kwargs[key]
+        
+        MCMCGrid = tmcmc.plotmcmc.SimplifyGrid(xp,yp)
+        
+        DataFile = pi.mcmcFile(datafile)
+        AllPars = list(set(xp+yp))
+        parErr = pi.pardata(parkey)
+
+        parLabelFormat = tmcmc.plotTransit.TransitParFormat(AllPars,objectname='XO2')
+        parData, axisProperties = tmcmc.plotTransit.PrepTransitData(DataFile,AllPars,parErr)
+
+        # also adjust the parameter values from the fits
+        parErr = tmcmc.plotTransit.parErr4Plot(parErr)
+        parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(parErr,parErr)
+
+        
+    #def initOCPlot(self,):
 
 class chainPrep:
 

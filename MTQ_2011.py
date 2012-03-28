@@ -63,7 +63,7 @@ def MTQ_multidepth_tduration(ModelParams,ObservedData):
 def MTQ_getDerivedParams(D,tT,tG,u1,u2,Period):
     """
         Computes a set of derived parameters and returns them in dictionary form.
-        
+
         Inputs = Depth (D), transit duration (tT), ingress duration (tG)
         the limb-darkening coefficients (u1 and u2) and the period.
         Outputs = 'velRs' (v/Rstar), 'aRs' (a/Rstar), 'b', 'inc', 'rho_star'
