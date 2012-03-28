@@ -13,7 +13,7 @@ rc('font',family='serif')
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
-def returnTsub(TSTAMP,**kwargs):
+def returnTsub(TSTAMP):
     """ For a parameter with transit time tag, 
     return latex symbol
     """
@@ -24,13 +24,13 @@ def returnTsub(TSTAMP,**kwargs):
             Tnum = long(Tsplit[0].strip('T'))
         else:
             Tnum = long(Tsplit[1].strip('T'))
-        for key in kwargs:
-            if key.lower().startswith('object'):
-                objectname = kwargs[key]
-                if objectname.lower() == 'xo2':
-                    Tnum = str(int(Tnum)-1)
-                else:
-                    pass
+        #for key in kwargs:
+            #if key.lower().startswith('object'):
+                #objectname = kwargs[key]
+                #if objectname.lower() == 'xo2':
+                    #Tnum = str(int(Tnum)-1)
+                #else:
+                    #pass
         Tsub = '$T_{%s}$' % Tnum
     else:
         Tsub = 'Wrong'

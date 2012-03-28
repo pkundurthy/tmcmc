@@ -12,7 +12,6 @@ def run_post_mcmc(ObjectName,Case,fitNum,Stage):
     Object.InitiateData()
     
     x = cfp.chainPrep(Object)
-    
 
     # cropping
     if Stage == 0 or Stage == 1:
