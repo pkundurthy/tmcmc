@@ -1,4 +1,4 @@
- Last Updated: 2012-Mar-28 14:19:52
+ Last Updated: 2012-Apr-01 01:19:46
 
 
 + myderivedfunc.py
@@ -128,6 +128,7 @@
      getTAP_TTs(Section):
 
 + plotTransit.py
+     FitLabels(CaseName):
      returnTsub(TSTAMP):
      Tfilter(TT,objectName):
      TForm(parName,**kwargs):
@@ -136,7 +137,7 @@
      TransitParFormat(parlist,**kwargs):
      TransitStatParFormat(parlist,**kwargs):
      TData(d,parName,par1):
-     PrepTransitData(DataFile,parlist,BestFitPar):
+     PrepTransitData(MCMCFileList,parlist,BestFitPar):
      parErr4Plot(parErr):
      robust1sigma(x):
      parTimeDay2Sec(pars,bestFitPars):
@@ -151,6 +152,7 @@
      quad(ModelParams,ObservedData):
 
 + runminuit.py
+     MinuitPar2Err(ParFile,ErrFile):
      RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
      f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams):
 
@@ -174,6 +176,7 @@
      correctionFromMCMCBestFit(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
      correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
      correctionFromDTfile(file,NuisONOFF):
+     getEffAutoCorStatFile(fileName):
 
 + tqessential.py
      ekepler(m,e):

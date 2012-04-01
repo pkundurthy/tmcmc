@@ -11,7 +11,10 @@ def post_minuit(ObjectName,Case,fitNum):
     Object.InitiateCase(Case)
     Object.InitiateFitNum(fitNum)
 
-    tmcmc.derived_MTQ_2011.printDerivedParFile_MTQ_2011(Object.OutFitFile,Object.DerivedFile)
+    tmcmc.derived_MTQ_2011.printDerivedParFile_MTQ_2011(Object.OutFitFile,Object.DerivedParFile)
+    
+    tmcmc.runminuit.MinuitPar2Err(Object.OutParFile,Object.ParErrorFile)
+    tmcmc.runminuit.MinuitPar2Err(Object.DerivedParFile,Object.DerivedErrorFile)
 
 if __name__ == '__main__':
     

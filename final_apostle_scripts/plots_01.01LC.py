@@ -27,8 +27,10 @@ def plot_Fit(ObjectName,Case,fitNum, **kwargs):
     Object.InitiateData()
     Object.HiResModelLC()
     print 'Object Initiated'
-    
-    fileNameRoot = cfp.PaperFiguresPath+'LCPlot.'+Object.name+'.'+Object.case+'.'+Object.fitNum
+
+    fileNameRoot = cfp.PaperFiguresPath+'LCPlot.'+\
+                   Object.name+'.'+Object.case+'.'+Object.fitNum
+
     for key in kwargs:
         if key.lower().startswith('filename'):
             fileNameRoot = kwargs[key]
