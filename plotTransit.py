@@ -13,6 +13,35 @@ rc('font',family='serif')
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
+def FitLabels(CaseName):
+    """             """
+
+    fitLabel = None
+    mtype = None
+    mcolor = None
+
+    if CaseName.lower().startswith('mcmc'):
+        fitLabel = r'tmcmc'
+        mtype = 'o'
+        mcolor = 'k'
+
+    if CaseName.lower().startswith('minuit'):
+        fitLabel = r'Minuit'
+        mtype = 's'
+        mcolor = 'b'
+
+    if CaseName.lower().startswith('tap'):
+        fitLabel = r'TAP'
+        mtype = 'o'
+        mcolor = 'g'
+
+    if CaseName.lower().startswith('torres'):
+        fitLabel = r'Torres et al. (2008)'
+        mtype = 'h'
+        mcolor = 'b'
+
+    return fitLabel,mtype,mcolor
+
 def returnTsub(TSTAMP):
     """ For a parameter with transit time tag, 
     return latex symbol
@@ -24,13 +53,7 @@ def returnTsub(TSTAMP):
             Tnum = long(Tsplit[0].strip('T'))
         else:
             Tnum = long(Tsplit[1].strip('T'))
-        #for key in kwargs:
-            #if key.lower().startswith('object'):
-                #objectname = kwargs[key]
-                #if objectname.lower() == 'xo2':
-                    #Tnum = str(int(Tnum)-1)
-                #else:
-                    #pass
+
         Tsub = '$T_{%s}$' % Tnum
     else:
         Tsub = 'Wrong'
@@ -57,9 +80,9 @@ def Tfilter(TT,objectName):
     return TT
 
 def TForm(parName,**kwargs):
-    
+
     if parName.startswith('T0'):
-        parSym = '$T_{mid}$ - '+returnTsub(parName,**kwargs)
+        parSym = '$T_{mid}$ - '+returnTsub(parName)
         AxFormat = FormatStrFormatter('%.3f')
     elif parName.startswith('D'):
         msplit = map(str,parName.split('.'))
@@ -208,8 +231,7 @@ def TStatForm(parName,**kwargs):
     return {'label':parSym}
 
 def TransitParFormat(parlist,**kwargs):
-    """
-    """
+    """                     """
 
     parFormDict = {}
     for par in parlist:
@@ -218,8 +240,7 @@ def TransitParFormat(parlist,**kwargs):
     return parFormDict
 
 def TransitStatParFormat(parlist,**kwargs):
-    """
-    """
+    """                     """
 
     parFormDict = {}
     for par in parlist:
@@ -245,12 +266,21 @@ def TData(d,parName,par1):
 
     return d
 
-def PrepTransitData(DataFile,parlist,BestFitPar):
+def PrepTransitData(MCMCFileList,parlist,BestFitPar):
 
     parData = {}
     axisData = {}
+    
+    if type(MCMCFileList) is list:
+        DataFile = MCMCFileList
+    else:
+        DataFile = [MCMCFileList]
+
     for par in parlist:
-        x = read1parMCMC(DataFile,par)
+        try:
+            x = read1parMCMC(DataFile[0],par)
+        except:
+            x = read1parMCMC(DataFile[1],par)
         d = x[par]
         parData[par] = TData(d,par,BestFitPar[par]['value'])
         rg0,rg1 = getRange(parData[par])
@@ -259,9 +289,7 @@ def PrepTransitData(DataFile,parlist,BestFitPar):
     return parData, axisData
 
 def parErr4Plot(parErr):
-    """
-    convert error dict to one useable by plotmcmc
-    """
+    """ convert error dict to one useable by plotmcmc """
 
     outPar = {}
     for par in parErr.keys():
@@ -275,46 +303,41 @@ def parErr4Plot(parErr):
     return outPar
 
 def robust1sigma(x):
-    """
-        return 1-sigma
-    """
-    
+    """  return 1-sigma    """
+
     x = x-np.median(x)
     dsort = np.sort(x)
     npts = len(x)
     sigma = (x[.8415*npts]-x[.1585*npts])/2e0
-    
+
     return sigma
 
 def parTimeDay2Sec(pars,bestFitPars):
     """ change times in parameters from days to seconds """
-    
+
     for par in pars.keys():
         if par.startswith('T0'):
             pars[par]['value'] = (pars[par]['value'] -\
             bestFitPars[par]['value'])*86400e0
-            if isinstance(pars[par]['step'],list):
-                for i in range(len(pars[par]['step'])):
-                    pars[par]['step'][i] = pars[par]['step'][i]*86400e0
-            else:
-                pars[par]['step'] = (pars[par]['step'])*86400e0
+            pars[par]['step'] =[pars[par]['step'][0]*86400e0,\
+                                pars[par]['step'][1]*86400e0]
 
     return pars
 
 def ShortenTT(parLabels):
-    
+
     for par in parLabels.keys():
         if '$T_{mid}$ - ' in parLabels[par]['label']:
              parLabels[par]['label'] = '$T_{%s}$' % parLabels[par]['label'].strip('$T_{mid} - ')
-             
+
     return parLabels
         
 def getxyparsFromParList(parList):
     """                 """
-    
+
     xp = parList[:-1]
     yp = parList[::-1][:-1]
-    
+
     return xp, yp
 
 def makeStatLabels(Stats,DataFile):

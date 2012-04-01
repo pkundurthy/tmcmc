@@ -356,11 +356,11 @@ def readDTfile(file,NuisONOFF):
     """
     read DT coefficients file.
     """
-    
+
     NuisanceData = ReadDetrendFile(NuisONOFF)
     fileObj = open(file,'r')
     fileLines = fileObj.readlines()
-    
+
     itag = 0
     TagList = []
     DTco = {}
@@ -399,7 +399,7 @@ def readDTfile(file,NuisONOFF):
             #print NuisanceData[tag]['dtparams'].keys()
             #print kvp
             DTco[istep-1].update({tag:dict(kvp)})
-             
+
     return DTco
 
 def generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
@@ -527,5 +527,29 @@ def correctionFromDTfile(file,NuisONOFF):
             #print NuisanceData[tag]['dtparams'].keys()
             #print kvp
             DTco[istep-1].update({tag:Correction})
-             
+
     return DTco
+
+def getEffAutoCorStatFile(fileName):
+    """ read the AutoCorStatistics """
+
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+
+    ParList = []
+    EffList = []
+    Eff = None
+    for line in FileObject:
+        if line.startswith('##'):
+            Split1 = map(str, line.split('##'))
+            par = Split1[1].strip()
+            Split2 = map(str, Split1[2].split('='))
+            if par.lower() == 'all' and Split2[0].strip().startswith('Eff'):
+                Eff = long(Split2[1])
+            else:
+                if Split2[0].strip().startswith('Eff'):
+                    ParList.append(par)
+                    EffList.append(long(Split2[1]))
+
+    EffList = np.array(EffList)
+    return ParList[EffList.argmin()], min(EffList)

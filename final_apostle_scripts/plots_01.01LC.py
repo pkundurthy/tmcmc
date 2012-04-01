@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
     (opts,args) = parser.parse_args()
     if opts.fname != None:
-        kwargs['filename'] = fname 
+        kwargs['filename'] = fname
 
-    print 'test plot ',ObjectName,opts.Case,opts.fitNum
+    print 'plot ',ObjectName,opts.Case,opts.fitNum
     plot_Fit(ObjectName,opts.Case,opts.fitNum,**kwargs)

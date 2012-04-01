@@ -10,7 +10,7 @@ import time
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
-from tmcmc.misc import quickMean
+#from tmcmc.misc import quickMean
 
 def covcorStats(File, FileTag, **kwargs):
     """ Given MCMC parameters, this function computes

@@ -197,11 +197,11 @@ def SimplifyGrid(xp,yp):
                 GridDict[(ix,iy)] = (xpD[ix],ypD[iy])
 
     return GridDict
-    
+
 class triplot:
 
-    def __init__(self,GridDict,MCMCFile,xp,yp):
-        
+    def __init__(self,GridDict,MCMCFileList,xp,yp):
+
         maxY = 0
         maxX = 0
         for Grid in GridDict.keys():
@@ -209,10 +209,9 @@ class triplot:
                 maxX = Grid[0]
             if Grid[1] > maxY:
                 maxY = Grid[1]
-            
+
         self.GridNX = maxX+1
         self.GridNY = maxY+1
-        
         parList = []
         for ix in range(self.GridNX):
             for iy in range(self.GridNY):
@@ -224,7 +223,10 @@ class triplot:
 
         self.parList = list(set(parList))
         self.GridDict = GridDict
-        self.DataFile = MCMCFile
+        if type(MCMCFileList) is list:
+            self.DataFile = MCMCFileList
+        else:
+            self.DataFile = [MCMCFileList]
         self.xpars = xp
         self.ypars = yp
         self.parDict = {}
@@ -233,9 +235,9 @@ class triplot:
                                  'axForm':None,\
                                  'axisTicks':None,\
                                  'axisRange':None}
- 
+
     def addFits(self,Label,params,**kwargs):
-        
+
         mkt = 'o'
         mkc = 'r'
         UseErr = False
@@ -243,7 +245,7 @@ class triplot:
             dummy = self.Fits
         except:
             self.Fits = {}
-        
+
         for key in kwargs:
             if key.lower().startswith('markertype'):
                 mkt = kwargs[key]
@@ -253,37 +255,41 @@ class triplot:
                 UseErr = kwargs[key]
             else:
                 pass
-        
+
         self.Fits[Label] = {'dict':params,\
                             'mkt':mkt,\
                             'mkc':mkc,\
                             'UseErr':UseErr}
-    
+
     def generateAxisText(self,**kwargs):
-        
+
         for key in kwargs:
             if key.lower() == 'parformat':
                 for par in self.parList:
                     self.parDict[par].update(kwargs[key][par])
             else:
                 pass
-                    
+
     def generateAxisProperties(self,**kwargs):
-        
+
         for key in kwargs:
             if key.lower() == 'axisform':
                 for par in self.parList:
                     self.parDict[par].update(kwargs[key][par])
             else:
                 pass
-                     
+
     def initPlots(self,**kwargs):
 
         UseHist = False
         hbins = 25
         DataDict = {}
         for par in self.parList:
-            DataDict[par] = read1parMCMC(self.DataFile,par)[par]
+            for dFile in self.DataFile:
+                try:
+                    DataDict[par] = read1parMCMC(dFile,par)[par]
+                except:
+                    pass
 
         for key in kwargs:
             if key.lower() == 'hist':
@@ -329,7 +335,7 @@ class triplot:
         self.HistDict = HistDict
 
     def makePlot(self, **kwargs):
-        
+
         PlotFile = False
         fSzX = 16
         fSzY = 16
@@ -347,12 +353,14 @@ class triplot:
                 legfsz = long(kwargs[key])
             if key.lower().startswith('legloc'):
                 loctup = kwargs[key]
-        
+
         width, height = matplotlib.rcParams['figure.figsize']
         size = min( [width,height])
         # make a square figure
         fig = plt.figure(figsize=(size,size))
-        
+
+        leglab = {}
+        LegFont = FontProperties(size=16)
         for Grid in self.GridDict.keys():
             LegMade = False
             if self.GridDict[Grid] != None:
@@ -365,35 +373,42 @@ class triplot:
                 singleJC(d_x,d_y)
                 #plot Fits if added:
                 if hasattr(self,'Fits'):
-                    leglab = []
-                    legmark = []
-                    LegFont = FontProperties(size=16)
                     for key in self.Fits.keys():
-                        xarr = [-9e3,self.Fits[key]['dict'][par_x]['value']]
-                        yarr = [-9e3,self.Fits[key]['dict'][par_y]['value']]
-                        if isinstance(self.Fits[key]['dict'][par_x]['step'],list):
-                            xerrArr0 = [0,self.Fits[key]['dict'][par_x]['step'][0]]
-                            xerrArr1 = [0,self.Fits[key]['dict'][par_x]['step'][1]]
-                            yerrArr0 = [0,self.Fits[key]['dict'][par_y]['step'][0]]
-                            yerrArr1 = [0,self.Fits[key]['dict'][par_y]['step'][1]]
-                            xerrArr = [xerrArr0,xerrArr1]
-                            yerrArr = [yerrArr0,yerrArr1]
-                            #print xerrArr
-                            #print yerrArr
-                        else:
-                            xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
-                            yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
-                        mkt = self.Fits[key]['mkt']
-                        mkc = self.Fits[key]['mkc']
-                        mark = plt.plot(xarr,yarr,marker=mkt,markerfacecolor=mkc,linestyle='None')
-                        if self.Fits[key]['UseErr']:
-                            plt.errorbar(xarr,yarr,xerr=xerrArr,\
-                                         yerr=yerrArr,fmt=None,\
-                                         marker=mkt)
-                        if not LegMade:
-                            leglab.append(key)
-                            legmark.append(mark)
-                    LegMade = True
+                        parXExists = False
+                        parYExists = False
+                        if par_x in self.Fits[key]['dict'].keys():
+                            parXExists = True
+                            xarr = [-9e3,self.Fits[key]['dict'][par_x]['value']]
+                        if par_y in self.Fits[key]['dict'].keys():
+                            parYExists = True
+                            yarr = [-9e3,self.Fits[key]['dict'][par_y]['value']]
+
+                        if parXExists and parYExists:
+                            if isinstance(self.Fits[key]['dict'][par_x]['step'],list):
+                                xerrArr0 = [0,self.Fits[key]['dict'][par_x]['step'][0]]
+                                xerrArr1 = [0,self.Fits[key]['dict'][par_x]['step'][1]]
+                                yerrArr0 = [0,self.Fits[key]['dict'][par_y]['step'][0]]
+                                yerrArr1 = [0,self.Fits[key]['dict'][par_y]['step'][1]]
+                                xerrArr = [xerrArr0,xerrArr1]
+                                yerrArr = [yerrArr0,yerrArr1]
+                                #print xerrArr
+                                #print yerrArr
+                            else:
+                                xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
+                                yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
+
+                            mkt = self.Fits[key]['mkt']
+                            mkc = self.Fits[key]['mkc']
+                            #print key, self.Fits.keys(), par_x, par_y, leglab
+                            mark = plt.plot(xarr,yarr,marker=mkt,markerfacecolor=mkc,linestyle='None')
+                            if self.Fits[key]['UseErr']:
+                                plt.errorbar(xarr,yarr,xerr=xerrArr,\
+                                            yerr=yerrArr,fmt=None,\
+                                            marker=mkt)
+                            if not LegMade:
+                                leglab[key] = mark
+                                #leglab.append(key)
+                                #legmark.append(mark)
 
                 #Axis Formatting
                 plt.xlim(self.parDict[par_x]['axisRange'])
@@ -422,8 +437,8 @@ class triplot:
         if hasattr(self,'Fits'):
             plotID = subID((0,0),self.GridNX,self.GridNY)
             plt.subplot(self.GridNX,self.GridNY,plotID)
-            plt.legend(tuple(legmark),\
-                       tuple(leglab),\
+            plt.legend(tuple(leglab.values()),\
+                       tuple(leglab.keys()),\
                        numpoints=1,\
                        loc='upper left',\
                        prop=LegFont,\
@@ -438,7 +453,8 @@ class triplot:
                     d = {par:self.DataDict[par]}
                     plotID = subID(Grid,self.GridNX,self.GridNY)
                     plt.subplot(self.GridNX,self.GridNY,plotID)
-                    plt.hist(d[par],bins=self.hbins,orientation=ori)
+                    plt.hist(d[par],bins=self.hbins,orientation=ori,\
+                             histtype='step',color='black')
                     tickForm = FormatStrFormatter('%.2e')
                     if ori.startswith('vert'):
                         plt.setp(plt.gca(),xticklabels=[])
@@ -508,7 +524,7 @@ class statTriplot:
                            'y':parLabel[self.GridDict[grid][1]]['label']}
 
         self.Label = Label
-        
+
     def statsTable(self,Stats,stype, **kwargs):
 
         width, height = matplotlib.rcParams['figure.figsize']
@@ -541,16 +557,16 @@ class statTriplot:
                 yshift = kwargs[key]
             else:
                 pass
-        
+
         for grid in self.GridDict.keys():
             plotID = subID(grid,self.GridNX,self.GridNY)
             plt.subplot(self.GridNY,self.GridNX,plotID)
-            
+
             Stat = Stats[stype]\
                         [self.GridDict[grid][0]]\
                         [self.GridDict[grid][1]]\
                         ['value']
-            
+
             absStat = abs(Stat)
 
             cross = np.linspace(0,1,3)

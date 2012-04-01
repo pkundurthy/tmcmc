@@ -192,6 +192,8 @@ class Object:
 
             self.DerivedErrorFile = FileRoot+'.lowchisq.derived.err'
 
+            self.DerivedParFile = self.DerivedLowestChiSQFile
+
             self.OutParFile = self.LowestChiSQFile
 
         if self.fitMethod.lower() == 'minuit': 
@@ -199,8 +201,13 @@ class Object:
             self.OutParFile = FileRoot+'.'+self.fitMethod+'.par'
 
             self.OutFitFile = self.OutParFile
- 
-            self.DerivedFile = FileRoot+'.'+self.fitMethod+'.derived.'+self.fitMethod+'.par'
+
+            self.ParErrorFile = FileRoot+'.'+self.fitMethod+'.err'
+
+            self.DerivedParFile = FileRoot+'.'+self.fitMethod+'.derived.'+self.fitMethod+'.par'
+
+            self.DerivedErrorFile = FileRoot+'.'+self.fitMethod+'.derived.'+self.fitMethod+'.err'
+
 
     def InitiateData(self):
 
@@ -224,7 +231,19 @@ class Object:
         for fit in self.FitTables.keys():
             self.OutFileList[fit] = self.casePath+'TAP_'+fit+'.err'
             tmcmc.ioTAP.print_TAPerr(self.FitTables[fit],self.OutFileList[fit])
-            
+
+    def setErrorFile(self):
+        for fit in self.FitTables.keys():
+            self.ParErrorFile = self.casePath+'TAP_'+fit+'.err'
+
+    def OtherFitFiles(self,Case):
+
+        self.case = Case
+        self.casePath = MainPath+self.name+'/OtherFits/'
+        for fileName in os.listdir(self.casePath):
+            if fileName.startswith(Case) and fileName.endswith('.err'):
+                self.ParErrorFile = self.casePath+fileName
+
     def MakeBoundFile(self):
         """         """
 
@@ -236,28 +255,23 @@ class Object:
         
     def MakeStartFile(self, Shift):
         """         """
-        
+
         StartParams = self.ModelParams
         #Bound0 = tmcmc.mcmc.ApplyBounds(self.ModelParams,self.BoundParams)
         Bound = False
         Trial = 1
-        #print self.ModelParams.keys()
-        #print Bound0
         while not Bound:
             if Trial%15 == 0:
                 Shift /= 2e0
             StartParams = ApplyShift(self.ModelParams,self.fitNum,Shift)
-            #print Bound, Bound0, Trial, Shift, Trial%10
             Bound = tmcmc.mcmc.ApplyBounds(StartParams,self.BoundParams)
-            #print 'here 2'
             Trial += 1
-            #print Bound, Bound0, Trial, Shift, Trial%10
 
         tmcmc.iomcmc.PrintModelParams(StartParams,self.StartFile)
-        
+
     def StepSizeFromExplore(self, FileList, StablePerc):
         """         """
-        
+
         step = {}
         for fileName in FileList:
             data = tmcmc.iopostmcmc.readMCMC(fileName)
@@ -266,13 +280,15 @@ class Object:
                 for par in data.keys():
                     if not tmcmc.iopostmcmc.isNonParam(par):
                         medfrac = np.median(data['frac'][-1000:])
-                        print par+' has stabilized, acr = '+format(data['acr'][-1],'.2f')+' frac = '+str(medfrac)+' | '+self.name+', '+self.case
+                        print par+' has stabilized, acr = '+format(data['acr'][-1],'.2f')+\
+                              ' frac = '+str(medfrac)+' | '+self.name+', '+self.case
                         step[par] = {'frac':medfrac}
             else:
                 for par in data.keys():
                     if not tmcmc.iopostmcmc.isNonParam(par):
-                        print par+' has NOT stabilized, acr = '+format(data['acr'][-1],'.2f')+' | '+self.name+', '+self.case
-    
+                        print par+' has NOT stabilized, acr = '+format(data['acr'][-1],'.2f')+\
+                              ' | '+self.name+', '+self.case
+
         for par in step.keys():
             for key in self.ModelParams.keys():
                 if key == par:
@@ -347,45 +363,83 @@ class PlotPrep:
         OutX = {}
         for TT in self.Object.ObservedData.keys():
             if TT.startswith('T'):
-                xobs = np.array(self.Object.ObservedData[TT]['x']) - self.Object.ModelParams['T0.'+TT]['value']
+                xobs = np.array(self.Object.ObservedData[TT]['x']) -\
+                                self.Object.ModelParams['T0.'+TT]['value']
                 yobs = np.array(self.Object.ObservedData[TT]['y'])
                 yerrobs = np.array(self.Object.ObservedData[TT]['yerr'])
                 ydt = np.array(self.Object.DetrendedData[TT]['y'])
                 yerrdt = np.array(self.Object.DetrendedData[TT]['yerr'])
                 ymod = np.array(self.Object.ModelData[TT]['y'])
-                xhimod = np.array(self.Object.HiResModelData[TT]['x']) - self.Object.ModelParams['T0.'+TT]['value']
+                xhimod = np.array(self.Object.HiResModelData[TT]['x']) -\
+                                  self.Object.ModelParams['T0.'+TT]['value']
                 yhimod = np.array(self.Object.HiResModelData[TT]['y'])
     
-                OutX[TT] = {'x':xobs,'yobs':yobs,'yerrobs':yerrobs,'ydt':ydt,'yerrdt':yerrdt,'ymod':ymod,\
+                OutX[TT] = {'x':xobs,'yobs':yobs,'yerrobs':yerrobs,'ydt':ydt,\
+                            'yerrdt':yerrdt,'ymod':ymod,\
                             'xhiresmod':xhimod,'yhiresmod':yhimod}
 
         self.PlotData = OutX
 
     def initMCMCPlot(self,ParList,**kwargs):
-        
+
         xpars = ParList[:-1]
-        revX = xp[::-1]
         ypars = ParList[::-1][:-1]
 
         for key in kwargs:
             if key.lower() == 'ypars':
                 xpars = ParList
                 ypars = kwargs[key]
-        
-        MCMCGrid = tmcmc.plotmcmc.SimplifyGrid(xp,yp)
-        
-        DataFile = pi.mcmcFile(datafile)
-        AllPars = list(set(xp+yp))
-        parErr = pi.pardata(parkey)
+            if key.lower() == 'useshort':
+                if kwargs[key]:
+                    FileRoot = self.Object.name+'.'+self.Object.case+\
+                               '.'+self.Object.fitNum+'.crop.mcmc'
+                    DerFileRoot = self.Object.name+'.'+self.Object.case+\
+                                '.'+self.Object.fitNum+'.mcmc.derived.crop.mcmc'
+                    self.Object.CroppedFileName = MainPath+'/croppedSamples/'+FileRoot
+                    self.Object.CroppedDerivedFile = MainPath+'/croppedSamples/'+DerFileRoot
 
-        parLabelFormat = tmcmc.plotTransit.TransitParFormat(AllPars,objectname='XO2')
-        parData, axisProperties = tmcmc.plotTransit.PrepTransitData(DataFile,AllPars,parErr)
+        self.xpars = xpars
+        self.ypars = ypars
+        self.Grid = tmcmc.plotmcmc.SimplifyGrid(xpars,ypars)
+        self.MCMCFiles = [self.Object.CroppedFileName,self.Object.CroppedDerivedFile]
+        self.ErrorFiles = [self.Object.ParErrorFile,self.Object.DerivedErrorFile]
+        self.triplot = tmcmc.plotmcmc.triplot(self.Grid,self.MCMCFiles,self.xpars,self.ypars)
 
-        # also adjust the parameter values from the fits
-        parErr = tmcmc.plotTransit.parErr4Plot(parErr)
-        parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(parErr,parErr)
+    def OtherFits(self,FitNameList):
 
-        
+        errParDict = {}
+        for Case in FitNameList:
+            X = Object(self.Object.name)
+            try:
+                X.InitiateCase(Case)
+                X.InitiateFitNum(self.Object.fitNum)
+            except:
+                try:
+                    X.InitiateTAP()
+                    X.setErrorFile()
+                except:
+                    try:
+                        X.OtherFitFiles(Case)
+                    except:
+                        raise NameError('All tries of fits failed')
+
+            #print X.ParErrorFile
+            parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+            ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+            #print parErr.keys()
+            #os.system('cat %s' % X.ParErrorFile)
+            parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
+            #for key in parErrPlot.keys():
+                #if key.startswith('T0'):
+                    #print key,Case, parErrPlot[key]['value'],ParErr[key]['value']
+            fitLabel,mtype,mcolor = tmcmc.plotTransit.FitLabels(Case)
+            errParDict[Case] = {'pdict':parErrPlot,\
+                                'fitLabel':fitLabel,'mtype':mtype,\
+                                'mcolor':mcolor}
+
+        if len(errParDict.keys()) > 0:
+            self.OtherParErr = errParDict
+
     #def initOCPlot(self,):
 
 class chainPrep:

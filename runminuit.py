@@ -1,12 +1,33 @@
 import minuit2
 from mcmc import ApplyBounds, DetrendData
-from iomcmc import PrintModelParams
+from iomcmc import PrintModelParams, ReadStartParams
 import numpy as np
 import cPickle as pickle
 import sys
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
+
+def MinuitPar2Err(ParFile,ErrFile):
+    """ Convert a Minuit par file to an error file """
     
+    ModelParams = ReadStartParams(ParFile)
+    OutFile = open(ErrFile,'w')
+    header = '# parname     |    value   | lower   | upper    | useSingle ?'
+    print >> OutFile, header
+
+    for par in ModelParams.keys():
+        if par.lower() != 'reffilt':
+            if ModelParams[par]['open']:
+                ValString = format(ModelParams[par]['value'],ModelParams[par]['printformat'])
+                ErrString = format(ModelParams[par]['step'],ModelParams[par]['printformat'])
+                print >> OutFile, par+'|'+ValString+'|'+ErrString+'|'+ErrString+'| True '
+            else:
+                ValString = format(ModelParams[par]['value'],ModelParams[par]['printformat'])
+                ErrString = 'nan'
+                print >> OutFile, par+'|'+ValString+'|'+ErrString+'|'+ErrString+'| False '
+
+    OutFile.close()
+
 def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
     """ Designed to run Minuit on tmcmc format Data dictionaries """
     

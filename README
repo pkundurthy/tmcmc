@@ -1,4 +1,4 @@
- Last Updated: 2012-Mar-22 15:08:01
+ Last Updated: 2012-Mar-28 14:19:52
 
 
 + myderivedfunc.py
@@ -11,6 +11,7 @@
      plotChain(File1, **keywords):
      plotTrace(File1,File2, **keywords):
      autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
+     autocorMCMC_old(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
      GelmanRubinConvergence(FileList,ModelFile,OutFile, **kwargs):
 
 + MTQ_2010.py
@@ -80,6 +81,7 @@
      String2Bool(inStr):
      String2IntFloat(inStr):
      format(str, form):
+     quickMean(itr):
      linefitquick_werr(x,y,yerr):
 
 + iomcmc.py
@@ -112,10 +114,21 @@
 
 + ioTAP.py
      ReadSingleTAP_DataFile(fileName):
+     print_TAPerr(InputFile,OutputFile):
      readTAPMCMC_SplitSections(filename):
+     FilterCheck(LinkData):
+     SortData(LinkData,ParData):
+     parStringConvert(parName):
+     Line2Data(line,ColSort,key,DataParDict):
+     GetData(Section,ColSection,TTList):
+     ColTTSort(Section):
+     TTSort(Section):
+     getcolTTag(line):
+     getTTag(line):
+     getTAP_TTs(Section):
 
 + plotTransit.py
-     returnTsub(TSTAMP,**kwargs):
+     returnTsub(TSTAMP):
      Tfilter(TT,objectName):
      TForm(parName,**kwargs):
      TransitTableFormat(allpars,**kwargs):
@@ -151,8 +164,8 @@
      getPars(filename):
      readMCMC(filename):
      read1parMCMC(filename,parname, **kwargs):
-     cropMCMCnew(mcmcfile,outfile,cropperc):
-     cropMCMC(mcmcfile,outfile,cropperc):
+     cropMCMC(mcmcfile,outfile,cropperc,NumCropLine):
+     cropMCMC_old(mcmcfile,outfile,cropperc):
      makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):
      readErrorFile(errorFile):
      printErrors(MCMCfile,BestfitFile,OutputFile):
@@ -170,6 +183,14 @@
      occultquad(z,u1,u2,p0):
      newtraph6(x,a5,a4,a0):
      tqsextic(x,a5,a4,a0):
+     checkRealRoots(a5,a4,a0):
+     NsignChange(List):
+     strum_tqsextic_f4(x,a5,a4,a0):
+     strum_tqsextic_f3(x,a5,a4,a0):
+     strum_tqsextic_f2(x,a5,a4,a0):
+     strum_tqsextic_f1(x,a5,a4,a0):
+     strum_tqsextic_f0(a5,a4,a0):
+     disc_tqsextic(a5,a4,a0):
      computeRpRs(u1,u2,tT,tG,D):
      LDC_v2u(v1,v2):
      getFilterTags(StringArray):
