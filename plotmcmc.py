@@ -127,8 +127,8 @@ def JC(par1,par2,dataMCMC):
 def getRange(d,**kwargs):
     
     # default
-    ext0 = 0
-    ext1 = 0
+    ext0 = 1
+    ext1 = 1
     for key in kwargs:
         if key.lower() == 'ext0':
             ext0 = float(kwargs[key])

@@ -27,6 +27,25 @@ def MinuitPar2Err(ParFile,ErrFile):
                 print >> OutFile, par+'|'+ValString+'|'+ErrString+'|'+ErrString+'| False '
 
     OutFile.close()
+    
+def MergeErrFiles(ErrFile,DerivedFile):
+    """  Merge Minuit and Derived Parameters """
+
+    File1 = open(ErrFile,'r')
+    File1 = File1.readlines()
+
+    OutFile = open(ErrFile,'w')
+    File2 = open(DerivedFile,'r')
+    File2 = File2.readlines()
+
+    for line in File1:
+        print >> OutFile, line.strip('\n')
+    
+    for line in File2:
+        if not line.startswith('#'):
+            print >> OutFile, line.strip('\n')
+
+    OutFile.close()
 
 def RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
     """ Designed to run Minuit on tmcmc format Data dictionaries """

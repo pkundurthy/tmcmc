@@ -15,6 +15,7 @@ def post_minuit(ObjectName,Case,fitNum):
     
     tmcmc.runminuit.MinuitPar2Err(Object.OutParFile,Object.ParErrorFile)
     tmcmc.runminuit.MinuitPar2Err(Object.DerivedParFile,Object.DerivedErrorFile)
+    tmcmc.runminuit.MergeErrFiles(Object.ParErrorFile,Object.DerivedErrorFile)
 
 if __name__ == '__main__':
     
