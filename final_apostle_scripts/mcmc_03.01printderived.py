@@ -31,7 +31,11 @@ def print_derived(Object,Case,fitNum,Stage):
     if Stage == 0 or Stage == 4:
         print 'print Errors'
         tmcmc.iopostmcmc.printErrors(Object.CroppedDerivedFile,Object.DerivedLowestChiSQFile,Object.DerivedErrorFile)
-    
+        
+    if Stage == 0 or Stage == 5:
+        print 'Merge files'
+        tmcmc.runminuit.MergeErrFiles(Object.ParErrorFile,Object.DerivedErrorFile)
+
 if __name__ == '__main__':
     
     ObjectName = sys.argv[1]

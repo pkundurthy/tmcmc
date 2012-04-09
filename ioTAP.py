@@ -19,7 +19,7 @@ def ReadSingleTAP_DataFile(fileName):
 
     for line in file_object:
         if not line.startswith('#'):
-            dummy_array = map(str,line.split(','))
+            dummy_array = map(str,line.split())
             data_point_count += 1
             x.append(float(dummy_array[0]))
             y.append(float(dummy_array[1]))

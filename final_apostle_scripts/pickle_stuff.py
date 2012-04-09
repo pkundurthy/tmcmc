@@ -64,9 +64,13 @@ StartDict = {
                 'T0.T9': {'step': 0.000207094, 'printformat': '.9f', 'open': True, 'value':55450.7213718},\
                 'T0.T10': {'step': 0.00012603, 'printformat': '.9f', 'open': True, 'value': 55478.7017604},\
                 'v1.T1.T2.T3.T4.T5.T6.T7': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.6092},\
+                'u1.T1.T2.T3.T4.T5.T6.T7': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3926},\
                 'v2.T1.T2.T3.T4.T5.T6.T7': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.176},\
+                'u2.T1.T2.T3.T4.T5.T6.T7': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.2166},\
                 'v1.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.7135},\
+                'u1.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.5541},\
                 'v2.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3947},\
+                'u2.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.1594},\
                 'D.T1.T2.T3.T4.T5.T6.T7' : {'step': 0.0005, 'printformat': '.7f', 'open': True, 'value': 0.013},\
                 'D.T8.T9.T10'            : {'step': 0.0005, 'printformat': '.7f', 'open': True, 'value': 0.014},\
                 'D.T1': {'step': 0.0005, 'printformat': '.7f', 'open': True, 'value': 0.013},\
@@ -106,9 +110,13 @@ StartDict = {
                 'T0.T9': {'step': 0.0002074, 'printformat': '.9f', 'open': True, 'value': 55591.70500},\
                 'T0.T10': {'step': 0.0001262, 'printformat': '.9f', 'open': True, 'value': 55625.71000},\
                 'v1.T1.T2.T3.T4.T5.T6': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.5944},\
+                'u1.T1.T2.T3.T4.T5.T6': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3698},\
                 'v2.T1.T2.T3.T4.T5.T6': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.1452},\
+                'u2.T1.T2.T3.T4.T5.T6': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.2246},\
                 'v1.T7.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.6980},\
+                'u1.T7.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.5252},\
                 'v2.T7.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3524},\
+                'u2.T7.T8.T9.T10': {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.1728},\
                 'D.T1.T2.T3.T4.T5.T6': {'step': 0.0005, 'printformat': '.7f', 'open': True, 'value': 0.013},\
                 'D.T7.T8.T9.T10': {'step': 0.0005, 'printformat': '.7f', 'open': True, 'value': 0.014},\
                 'D.T1': {'step': 0.0005, 'printformat': '.7f', 'open': True, 'value': 0.013},\
@@ -174,8 +182,12 @@ StartDict = {
                 {'step': 0.0006, 'printformat': '.7f', 'open': False, 'value': 0.025},\
                 'v1.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
                 {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.4012},\
+                'u1.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3342},\
                 'v2.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
                 {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.2672},\
+                'u2.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.0670},\
                 'RefFilt': {'step': 0.0, 'printformat': 'T7', 'open': False, 'value': 'nan'}\
                 }\
             }

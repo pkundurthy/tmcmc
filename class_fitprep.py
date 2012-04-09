@@ -5,6 +5,7 @@ import tmcmc
 import random
 import numpy as np
 import cPickle as cP
+import itertools
 from tmcmc.workingfolder_setup import get_user_exec
 
 ExecList = get_user_exec()
@@ -22,6 +23,92 @@ FuncName = 'MTQ_multidepth_tduration'
 
 CaseList = ['MCMC.FLD','MCMC.OLD','MCMC.MDFLD',\
             'MINUIT.FLD','MINUIT.OLD','MINUIT.MDFLD','MINUIT.FIRSTTRY']
+
+def sortTTdata(TTDicts,fitList,PeriodGuess):
+    """             """
+
+    allTT = np.array([])
+    allErrTT = np.array([])
+    for fitName in fitList:
+        #print fitName, len(TTDicts[fitName][0]), TTDicts[fitName][0]
+        allTT = np.hstack((allTT,TTDicts[fitName][0]))
+        allErrTT = np.hstack((allErrTT,TTDicts[fitName][1]))
+
+    minTT = min(allTT)
+    epoch_raw = (allTT - minTT)/PeriodGuess
+    epoch_all = np.around(epoch_raw)
+    #print epoch_all
+    #print epoch_raw
+    #print allTT
+    #print allErrTT
+    #print epoch_raw - epoch_all
+
+    return epoch_all, allTT, allErrTT
+
+def getParDict(ObjectName):
+    
+    ParFiles = {}
+    Obj = Object(ObjectName)
+
+    Obj.InitiateCase('MCMC.FLD')
+    for fitNum in [1,2]:
+        Obj.InitiateFitNum(fitNum)
+        ParFiles['MCMC.FLD.'+str(fitNum)] = Obj.ParErrorFile
+
+    Obj.InitiateCase('MINUIT.FLD')
+    for fitNum in [1,2]:
+        Obj.InitiateFitNum(fitNum)
+        ParFiles['MINUIT.FLD.'+str(fitNum)] = Obj.ParErrorFile
+
+    Obj.InitiateTAP()
+    Obj.setTAPErrorFile()
+    ParFiles['TAP'] = Obj.ParErrorFile
+
+    for fileName in os.listdir(Obj.objectPath+'LitData/'):
+        if fileName.endswith('.err'):
+            SplitName = map(str, fileName.split('.'))
+            fitName = SplitName[0].strip()
+            ParFiles[fitName] = Obj.objectPath+'LitData/'+fileName
+
+    ParDict = {}
+    for fitName in ParFiles.keys():
+        #print ParFiles[fitName]
+        ParDict[fitName] = tmcmc.iopostmcmc.readErrorFile(ParFiles[fitName])
+
+    return ParDict, ParFiles, Obj
+
+def GetPeriodFits(ParDict):
+    """             """
+
+    OutDict = {}
+    for fitName in ParDict.keys():
+        try:
+            OutDict[fitName] = (ParDict[fitName]['Period']['value'],\
+                           max([ParDict[fitName]['Period']['lower'],\
+                                ParDict[fitName]['Period']['upper']]))
+        except:
+            pass
+    
+    return OutDict
+
+def GetTTFits(ParDict):
+    """             """
+    
+    OutDict = {}
+    for fitName in ParDict.keys():
+        TTarr = np.array([])
+        errTTarr = np.array([])
+        for par in ParDict[fitName].keys():
+            if par.startswith('T0.'):
+                TTarr = np.hstack( (TTarr,ParDict[fitName][par]['value']))
+                err = max([ParDict[fitName][par]['lower'],\
+                           ParDict[fitName][par]['upper']])
+                errTTarr = np.hstack( (errTTarr,err))
+
+        if len(TTarr) > 0:
+            OutDict[fitName] = (TTarr,errTTarr)
+
+    return OutDict
 
 def OpenParArray(ModelParams):
     """         """
@@ -107,7 +194,8 @@ def readTAPdata(Path):
     
     DT = {}
     for fileName in os.listdir(Path):
-        if fileName.endswith('.lcdtx'):
+        if fileName.endswith('.lcdtx') and \
+           not fileName.endswith('ALL.lcdtx'):
             SplitName = map(str, fileName.split('.'))
             DT[SplitName[1].strip()] = tmcmc.ioTAP.ReadSingleTAP_DataFile(Path+'/'+fileName)
 
@@ -232,17 +320,20 @@ class Object:
             self.OutFileList[fit] = self.casePath+'TAP_'+fit+'.err'
             tmcmc.ioTAP.print_TAPerr(self.FitTables[fit],self.OutFileList[fit])
 
-    def setErrorFile(self):
+    def setTAPErrorFile(self):
+        
         for fit in self.FitTables.keys():
             self.ParErrorFile = self.casePath+'TAP_'+fit+'.err'
 
     def OtherFitFiles(self,Case):
 
         self.case = Case
-        self.casePath = MainPath+self.name+'/OtherFits/'
+        self.casePath = MainPath+self.name+'/LitData/'
         for fileName in os.listdir(self.casePath):
-            if fileName.startswith(Case) and fileName.endswith('.err'):
+            #print fileName, Case.lower(), fileName.startswith(Case.lower()), fileName.endswith('.err')
+            if fileName.startswith(Case.lower()) and fileName.endswith('.err'):
                 self.ParErrorFile = self.casePath+fileName
+                #print self.ParErrorFile
 
     def MakeBoundFile(self):
         """         """
@@ -339,18 +430,51 @@ class Object:
         """             """
 
         self.DetrendedDataPath = MainPath+self.name+'/TAP/'
+        
+        TTcount = 0
         for TT in self.DetrendedData.keys():
             if TT.startswith('T'):
-                FileName = self.DetrendedDataPath+self.name+'.'+TT+'.lcdtx'
-                LCOutFile = open(FileName,'w')
-                print 'writing '+FileName
-                #print >> LCOutFile, '# BJD   |   flux   |   err_flux '
-                for i in range(len(self.DetrendedData[TT]['x'])):
-                    timeStr = format(self.DetrendedData[TT]['x'][i],'.7f')
-                    FluxStr = format(self.DetrendedData[TT]['y'][i],'.12f')
-                    FluxStrErr = format(self.DetrendedData[TT]['yerr'][i],'.12f')
-                    lineStr = timeStr+','+FluxStr+','+FluxStrErr
-                    print >> LCOutFile, lineStr
+                TTcount += 1
+        
+        FileAllStacked = self.DetrendedDataPath+self.name+'.ALL.lcdtx'
+        ALLOutFile = open(FileAllStacked,'w')
+        NCount = None
+        for TTnum in xrange(TTcount):
+            TT = 'T'+str(TTnum+1)
+            if TTnum != TTcount-1: 
+                NCount = self.ModelParams['NT.T'+str(TTnum+2)]['value'] -\
+                         self.ModelParams['NT.'+TT]['value']
+                NCount = long(NCount)
+                if self.name == 'XO2': 
+                    P = 2.615859997
+                    T0 = self.ModelParams['T0.T1']['value']
+                if self.name == 'TRES3': 
+                    P = 1.306187245
+                    T0 = self.ModelParams['T0.T1']['value']
+            else:
+                NCount = None
+            #print NCount
+            FileName = self.DetrendedDataPath+self.name+'.'+TT+'.lcdtx'
+            LCOutFile = open(FileName,'w')
+            #print 'writing '+FileName
+            #print >> LCOutFile, '# BJD   |   flux   |   err_flux '
+            epoch = self.ModelParams['NT.'+TT]['value']-self.ModelParams['NT.T1']['value']
+            print epoch, self.ModelParams['T0.T1']['value'],\
+                         self.ModelParams['T0.'+TT]['value'],\
+                         self.ModelParams['T0.'+TT]['value']-(P*(epoch-TTnum)), TTnum
+            for i in range(len(self.DetrendedData[TT]['x'])):
+                timeStr0 = format(self.DetrendedData[TT]['x'][i],'.7f')
+                timeStr1 = format(self.DetrendedData[TT]['x'][i]-(P*(epoch-TTnum)),'.7f')
+                FluxStr = format(self.DetrendedData[TT]['y'][i],'.12f')
+                FluxStrErr = format(self.DetrendedData[TT]['yerr'][i],'.12f')
+                lineStr0 = timeStr0+' '+FluxStr+' '+FluxStrErr
+                lineStr1 = timeStr1+' '+FluxStr+' '+FluxStrErr
+                print >> LCOutFile, lineStr0
+                print >> ALLOutFile, lineStr1
+            if TTnum != TTcount-1 :
+                print >> ALLOutFile, '-1.0000000    -1.000000      -1.00000'
+
+        ALLOutFile.close()
 
 class PlotPrep:
     
@@ -410,28 +534,33 @@ class PlotPrep:
         errParDict = {}
         for Case in FitNameList:
             X = Object(self.Object.name)
+            parErrPlot = {}
             try:
                 X.InitiateCase(Case)
                 X.InitiateFitNum(self.Object.fitNum)
+                parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+                ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+                parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
             except:
                 try:
                     X.InitiateTAP()
-                    X.setErrorFile()
+                    if len(X.FitTables.keys()) == 0:
+                        raise
+                    else:
+                        X.setErrorFile()
+                        parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+                        ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+                        parErrPlot = \
+                        tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
                 except:
                     try:
                         X.OtherFitFiles(Case)
+                        parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+                        ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+                        parErrPlot = ParErr
                     except:
                         raise NameError('All tries of fits failed')
 
-            #print X.ParErrorFile
-            parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
-            ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
-            #print parErr.keys()
-            #os.system('cat %s' % X.ParErrorFile)
-            parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
-            #for key in parErrPlot.keys():
-                #if key.startswith('T0'):
-                    #print key,Case, parErrPlot[key]['value'],ParErr[key]['value']
             fitLabel,mtype,mcolor = tmcmc.plotTransit.FitLabels(Case)
             errParDict[Case] = {'pdict':parErrPlot,\
                                 'fitLabel':fitLabel,'mtype':mtype,\
@@ -440,7 +569,10 @@ class PlotPrep:
         if len(errParDict.keys()) > 0:
             self.OtherParErr = errParDict
 
-    #def initOCPlot(self,):
+    #def initOCPlot(self, **kwargs):
+        
+        #TTdictionary = {}
+        #for 
 
 class chainPrep:
 

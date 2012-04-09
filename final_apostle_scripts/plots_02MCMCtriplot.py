@@ -161,5 +161,5 @@ if __name__ == '__main__':
         FitList = map(str, opts.otherfits.strip('\"').strip("\'").split(','))
         kwargs['otherfits'] = FitList
 
-    print 'MCMC ',ObjectName,opts.Case,opts.fitNum, ParList, kwargs
+    #print 'MCMC ',ObjectName,opts.Case,opts.fitNum, ParList, kwargs
     plotMCMC(ObjectName,opts.Case,opts.fitNum,ParList,**kwargs)

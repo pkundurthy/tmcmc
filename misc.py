@@ -1,4 +1,5 @@
 import numpy as num
+import scipy.integrate
 
 def String2Bool(inStr):
     """ Returns String representations to Boolean type. """
@@ -47,3 +48,41 @@ def linefitquick_werr(x,y,yerr):
     sigb = num.sqrt((1e0/delta)*(wsum))
 
     return (b,sigb),(a,siga)
+
+#def normal_func(x,mu,sig):
+    """                 """
+    #return (1e0/(sig*num.sqrt(2e0*num.pi)))*num.exp( (-1e0*(x-mu)**2)/(2e0*(sig**2)))
+
+def min_2normals(m1,s1,m2,s2):
+    """             """
+    
+    
+    #m1,s1,m2,s2 = 5.871741,0.037418,5.869499,0.038057
+    A1 = 1e0/(s1*num.sqrt(2e0*num.pi))
+    pTerm1 = -1e0/(2e0*s1*s1)
+    A2 = 1e0/(s2*num.sqrt(2e0*num.pi))
+    pTerm2 = -1e0/(2e0*s2*s2)
+    #print m1, m2, s1, s2
+    #print m1, m2
+
+    def func(t):
+        #print m1, m2
+        f1 = num.abs(A1*num.exp(pTerm1*(t-m1)*(t-m1)))
+        f2 = num.abs(A2*num.exp(pTerm2*(t-m2)*(t-m2)))
+        #print t,min1, min2
+        return min([f1,f2])
+
+    return func
+
+def ovl_coefficient(mu1,sig1,mu2,sig2):
+
+    
+    Int1 = \
+    scipy.integrate.quad(min_2normals(mu1,sig1,mu2,sig2),-num.inf,min([mu1,mu2]))
+    Int2 = \
+    scipy.integrate.quad(min_2normals(mu1,sig1,mu2,sig2),min([mu1,mu2]),max([mu1,mu2]))
+    #print Int1[0], Int2[0]
+    Int3 = \
+    scipy.integrate.quad(min_2normals(mu1,sig1,mu2,sig2),max([mu1,mu2]),num.inf)
+    
+    return Int1[0]+Int2[0]+Int3[0]

@@ -7,11 +7,19 @@ from tmcmc.iomcmc import ReadStartParams
 import numpy as np
 import sys
 from matplotlib import rc
+ 
 rc('text',usetex=True)
 rc('font',family='serif')
 
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
+    
+    
+def OtherFitLabels(CaseName):
+    """             """
+    
+    colorList = ['c','m','r']
+    symList = ['*','h','H','D','^','v']
 
 def FitLabels(CaseName):
     """             """
@@ -19,26 +27,32 @@ def FitLabels(CaseName):
     fitLabel = None
     mtype = None
     mcolor = None
+    OtherFits = {'burke2007':(r'Burke et al. (2007)','h','m'),\
+                 'fernandez2009':(r'Fernandez et al. (2009)','D','m'),\
+                 'sing2011':(r'Sing et al. (2011)','s','m'),\
+                 'christiansen2011':(r'Christiansen et al. (2011)','*','m'),\
+                 'gibson2009':(r'Gibson et al. (2009)','D','m'),\
+                 'lee2011':(r'Lee et al. (2011)','v','m'),\
+                 'odonovan2007':(r'O\'Donovan et al. (2007)','^','m'),\
+                 'sada2012':(r'Sada et al. (2012)','s','m'),\
+                 'southworth2011':(r'Southworth (20011)','H','m'),\
+                 'sozzetti2009':(r'Sozetti et al. (2009)','>','m') \
+                 }
 
     if CaseName.lower().startswith('mcmc'):
         fitLabel = r'tmcmc'
         mtype = 'o'
         mcolor = 'k'
-
-    if CaseName.lower().startswith('minuit'):
+    elif CaseName.lower().startswith('minuit'):
         fitLabel = r'Minuit'
         mtype = 's'
         mcolor = 'b'
-
-    if CaseName.lower().startswith('tap'):
+    elif CaseName.lower().startswith('tap'):
         fitLabel = r'TAP'
         mtype = 'o'
         mcolor = 'g'
-
-    if CaseName.lower().startswith('torres'):
-        fitLabel = r'Torres et al. (2008)'
-        mtype = 'h'
-        mcolor = 'b'
+    else:
+        fitLabel,mtype,mcolor = OtherFits[CaseName]
 
     return fitLabel,mtype,mcolor
 
