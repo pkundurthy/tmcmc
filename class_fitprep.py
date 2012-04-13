@@ -37,11 +37,6 @@ def sortTTdata(TTDicts,fitList,PeriodGuess):
     minTT = min(allTT)
     epoch_raw = (allTT - minTT)/PeriodGuess
     epoch_all = np.around(epoch_raw)
-    #print epoch_all
-    #print epoch_raw
-    #print allTT
-    #print allErrTT
-    #print epoch_raw - epoch_all
 
     return epoch_all, allTT, allErrTT
 
@@ -441,34 +436,34 @@ class Object:
         NCount = None
         for TTnum in xrange(TTcount):
             TT = 'T'+str(TTnum+1)
-            if TTnum != TTcount-1: 
-                NCount = self.ModelParams['NT.T'+str(TTnum+2)]['value'] -\
-                         self.ModelParams['NT.'+TT]['value']
-                NCount = long(NCount)
-                if self.name == 'XO2': 
-                    P = 2.615859997
-                    T0 = self.ModelParams['T0.T1']['value']
-                if self.name == 'TRES3': 
-                    P = 1.306187245
-                    T0 = self.ModelParams['T0.T1']['value']
-            else:
-                NCount = None
+            #if TTnum != TTcount-1: 
+                #NCount = self.ModelParams['NT.T'+str(TTnum+2)]['value'] -\
+                         #self.ModelParams['NT.'+TT]['value']
+                #NCount = long(NCount)
+                #if self.name == 'XO2': 
+                    #P = 2.615859997
+                    #T0 = self.ModelParams['T0.T1']['value']
+                #if self.name == 'TRES3': 
+                    #P = 1.306187245
+                    #T0 = self.ModelParams['T0.T1']['value']
+            #else:
+                #NCount = None
             #print NCount
             FileName = self.DetrendedDataPath+self.name+'.'+TT+'.lcdtx'
             LCOutFile = open(FileName,'w')
             #print 'writing '+FileName
             #print >> LCOutFile, '# BJD   |   flux   |   err_flux '
-            epoch = self.ModelParams['NT.'+TT]['value']-self.ModelParams['NT.T1']['value']
-            print epoch, self.ModelParams['T0.T1']['value'],\
-                         self.ModelParams['T0.'+TT]['value'],\
-                         self.ModelParams['T0.'+TT]['value']-(P*(epoch-TTnum)), TTnum
+            #epoch = self.ModelParams['NT.'+TT]['value']-self.ModelParams['NT.T1']['value']
+            #print epoch, self.ModelParams['T0.T1']['value'],\
+                         #self.ModelParams['T0.'+TT]['value'],\
+                         #self.ModelParams['T0.'+TT]['value']-(P*(epoch-TTnum)), TTnum
             for i in range(len(self.DetrendedData[TT]['x'])):
                 timeStr0 = format(self.DetrendedData[TT]['x'][i],'.7f')
-                timeStr1 = format(self.DetrendedData[TT]['x'][i]-(P*(epoch-TTnum)),'.7f')
+                #timeStr1 = format(self.DetrendedData[TT]['x'][i]-(P*(epoch-TTnum)),'.7f')
                 FluxStr = format(self.DetrendedData[TT]['y'][i],'.12f')
                 FluxStrErr = format(self.DetrendedData[TT]['yerr'][i],'.12f')
                 lineStr0 = timeStr0+' '+FluxStr+' '+FluxStrErr
-                lineStr1 = timeStr1+' '+FluxStr+' '+FluxStrErr
+                lineStr1 = timeStr0+' '+FluxStr+' '+FluxStrErr
                 print >> LCOutFile, lineStr0
                 print >> ALLOutFile, lineStr1
             if TTnum != TTcount-1 :

@@ -16,7 +16,7 @@ def make_detrendData(ObjectName,Case,fitNum):
 
 if __name__ == '__main__':
     
-    for ObjectName in ['XO2']: #,'WASP2']:
+    for ObjectName in ['WASP2']: #['XO2','TRES3']: #,'WASP2']:
         for Case in ['MCMC.FLD']: #['MINUIT.FLD']:
             for fitNum in [1]:
                 print 'writing, '+ObjectName+' '+Case+' '+str(fitNum)
