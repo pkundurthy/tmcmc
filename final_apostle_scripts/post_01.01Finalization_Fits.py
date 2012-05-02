@@ -59,7 +59,7 @@ def runFinalizationCheck(ObjectName,condition):
                                 MaxPar = SplitLine[0].strip()
                     DeltaGR = np.abs(MaxGRStat-1e0)
                     Converge = 'False'
-                    if DeltaGR < 1e-2:
+                    if DeltaGR < 1e-1:
                         Converge = 'True'
             Output2 += Case+'|'+Converge+'|'+str(MaxGRStat)+'|'+str(DeltaGR)+'|'+MaxPar+'\n'
         Output2 += '#<-|2|\n'
