@@ -334,6 +334,15 @@ class triplot:
 
         self.HistDict = HistDict
 
+    def addTitle(self,x,y, TitleString):
+        
+        self.xTitleStr = x
+        self.yTitleStr = y
+        self.TitleString = TitleString
+        
+    def addWarning(self,WarningString):
+        self.WarningString = WarningString 
+
     def makePlot(self, **kwargs):
 
         PlotFile = False
@@ -360,7 +369,11 @@ class triplot:
         fig = plt.figure(figsize=(size,size))
 
         leglab = {}
-        LegFont = FontProperties(size=16)
+        legFontSz = 12
+        if len(self.Fits.keys()) > 2: 
+            legFontSz = 10
+
+        LegFont = FontProperties(size=legFontSz)
         for Grid in self.GridDict.keys():
             LegMade = False
             if self.GridDict[Grid] != None:
@@ -404,7 +417,7 @@ class triplot:
                             if self.Fits[key]['UseErr']:
                                 plt.errorbar(xarr,yarr,xerr=xerrArr,\
                                             yerr=yerrArr,fmt=None,\
-                                            marker=mkt)
+                                            marker=mkt,ecolor=mkc)
                             if not LegMade:
                                 leglab[key] = mark
                                 #leglab.append(key)
@@ -452,6 +465,7 @@ class triplot:
                     ori = self.HistDict[Grid][1]
                     d = {par:self.DataDict[par]}
                     plotID = subID(Grid,self.GridNX,self.GridNY)
+                    #print plotID, Grid
                     plt.subplot(self.GridNX,self.GridNY,plotID)
                     plt.hist(d[par],bins=self.hbins,orientation=ori,\
                              histtype='step',color='black')
@@ -489,8 +503,17 @@ class triplot:
         plt.subplots_adjust(hspace=0)
         plt.subplots_adjust(wspace=0)
 
+        if hasattr(self, 'TitleString'):
+            print self.TitleString, size
+            plt.figtext(self.xTitleStr,\
+                        self.yTitleStr,self.TitleString,\
+                        fontsize=fSzY)
+        if hasattr(self, 'WarningString'):
+            fdict = {'family' : 'monospace','color':'b'}
+            plt.figtext(0.5,0.5,self.WarningString,fontsize=24,rotation=45, **fdict)
+
         if PlotFile:
-            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.1)
+            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.5)
         else:
             plt.show()
 
@@ -604,6 +627,6 @@ class statTriplot:
         plt.subplots_adjust(wspace=0)
 
         if PlotFile:
-            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.1)
+            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.2)
         else:
             plt.show()

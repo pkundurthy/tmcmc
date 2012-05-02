@@ -4,7 +4,7 @@ import os
 import sys
 import tmcmc
 import optparse
-import class_fitprep as cfp
+from tmcmc import class_fitprep as cfp
 
 MainPath = cfp.MainPath
 ObjectList = cfp.ObjectList

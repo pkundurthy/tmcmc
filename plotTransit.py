@@ -27,20 +27,20 @@ def FitLabels(CaseName):
     fitLabel = None
     mtype = None
     mcolor = None
-    OtherFits = {'burke2007':(r'Burke et al. (2007)','h','m'),\
+    OtherFits = {'burke2007':(r'Burke et al. (2007)','*','m'),\
                  'fernandez2009':(r'Fernandez et al. (2009)','D','m'),\
                  'sing2011':(r'Sing et al. (2011)','s','m'),\
-                 'christiansen2011':(r'Christiansen et al. (2011)','*','m'),\
-                 'gibson2009':(r'Gibson et al. (2009)','D','m'),\
-                 'lee2011':(r'Lee et al. (2011)','v','m'),\
                  'odonovan2007':(r'O\'Donovan et al. (2007)','^','m'),\
+                 'sozzetti2009':(r'Sozetti et al. (2009)','s','m'),\
+                 'gibson2009':(r'Gibson et al. (2009)','D','m'),\
+                 'christiansen2011':(r'Christiansen et al. (2011)','*','m'),\
+                 'lee2011':(r'Lee et al. (2011)','v','m'),\
                  'sada2012':(r'Sada et al. (2012)','s','m'),\
-                 'southworth2011':(r'Southworth (20011)','H','m'),\
-                 'sozzetti2009':(r'Sozetti et al. (2009)','>','m') \
+                 'southworth2011':(r'Southworth (20011)','H','m')\
                  }
 
     if CaseName.lower().startswith('mcmc'):
-        fitLabel = r'tmcmc'
+        fitLabel = r'TMCMC'
         mtype = 'o'
         mcolor = 'k'
     elif CaseName.lower().startswith('minuit'):
@@ -167,14 +167,23 @@ def TForm(parName,**kwargs):
         parSym = r'$\nu/R_{*}$'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName == 'tT':
-        parSym = r'$\tau_{T}$'
+        parSym = r'$t_{T}$'
         AxFormat = FormatStrFormatter('%.4f')
     elif parName == 'tG':
-        parSym = r'$\tau_{G}$'
+        parSym = r'$t_{G}$'
         AxFormat = FormatStrFormatter('%.4f')
     elif parName.startswith('aRs'):
         parSym = r'$a/R_{*}$'
-        AxFormat = FormatStrFormatter('%.4f')
+        AxFormat = FormatStrFormatter('%.2f')
+    elif parName == 'b':
+        parSym = r'b'
+        AxFormat = FormatStrFormatter('%.2f')
+    elif parName == 'Period':
+        parSym = r'Period+ (sec)'
+        AxFormat = FormatStrFormatter('%.2f')
+    elif parName == 'inc':
+        parSym = r'i'
+        AxFormat = FormatStrFormatter('%.2f')
     elif parName.startswith('rho'):
         parSym = r'$\rho_{*}$'
         AxFormat = FormatStrFormatter('%.2f')
@@ -222,9 +231,9 @@ def TStatForm(parName,**kwargs):
                 pass
         parSym = '$'+msplit[0]+'_{(%s)}$' % TT
     elif parName == 'tT':
-        parSym = r'$\tau_{T}$'
+        parSym = r'$t_{T}$'
     elif parName == 'tG':
-        parSym = r'$\tau_{G}$'
+        parSym = r'$t_{G}$'
     elif parName.startswith('v1.') or parName.startswith('v2.'):
         msplit = map(str,parName.split('.'))
         TT = ''
@@ -265,6 +274,9 @@ def TransitStatParFormat(parlist,**kwargs):
 def TData(d,parName,par1):
 
     if parName.startswith('T0'):
+        x = ((np.array(d) - par1)*86400e0).tolist()
+        d = x
+    elif parName.startswith('Period'):
         x = ((np.array(d) - par1)*86400e0).tolist()
         d = x
     elif parName.startswith('D'):
@@ -325,6 +337,18 @@ def robust1sigma(x):
     sigma = (x[.8415*npts]-x[.1585*npts])/2e0
 
     return sigma
+
+def parPeriodDay2Sec(pars,bestFitPars):
+    """ change period days to seconds """
+    
+    for par in pars.keys():
+        if par.startswith('Period'):
+            pars[par]['value'] = (pars[par]['value'] -\
+            bestFitPars[par]['value'])*86400e0
+            pars[par]['step'] =[pars[par]['step'][0]*86400e0,\
+                                pars[par]['step'][1]*86400e0]
+    
+    return pars
 
 def parTimeDay2Sec(pars,bestFitPars):
     """ change times in parameters from days to seconds """
@@ -464,3 +488,4 @@ class Parameter:
         parLabelFormat = ShortenTT(parLabelFormat)
         self.axForm = parLabelFormat[self.name]['axForm']
         self.LabelString = parLabelFormat[self.name]['label']
+        

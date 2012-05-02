@@ -17,7 +17,7 @@ UTD_List = {
                      'T10':'2011JUN21','T11':'2011AUG24'},\
              'GJ1214':
                     {'T1':'2010APR21','T2':'2010JUN06','T3':'2010JUL06',\
-                     'T4':'2011MAY26','T5':'2011JUN25','T6':'2011SEP01'}
+                     'T4':'2011MAY26','T5':'2011JUN25','T6':'2011AUG02'}
             }
 
 
@@ -41,7 +41,7 @@ UTD_DateString = {
                      'T10':'2011-06-21','T11':'2011-08-24'},\
              'GJ1214':
                     {'T1':'2010-04-21','T2':'2010-06-06','T3':'2010-07-06',\
-                     'T4':'2011-05-26','T5':'2011-06-25','T6':'2011-09-01'}
+                     'T4':'2011-05-26','T5':'2011-06-25','T6':'2011-08-02'}
             }
 
 fileOut = open(cfp.PicklePath+'DateString.pickle','wb')
@@ -93,7 +93,7 @@ StartDict = {
                 'NT.T8': {'step': 0.0, 'printformat': 'n', 'open': False, 'value': 228.0},\
                 'NT.T9': {'step': 0.0, 'printformat': 'n', 'open': False, 'value': 260.0},\
                 'NT.T10': {'step': 0.0, 'printformat': 'n', 'open': False, 'value': 273.0},\
-                'RefFilt': {'step': 0.0, 'printformat': 'T6', 'open': False, 'value': 'nan'}\
+                'RefFilt': {'step': 0.0, 'printformat': ['T1.T2.T3.T4.T5.T6.T7','T6'], 'open': False, 'value': 'nan'}\
                     },\
             'XO2':{
                 'f0': {'step': 0.0, 'printformat': '.7f', 'open': False, 'value': 1.0},\
@@ -139,7 +139,7 @@ StartDict = {
                 'NT.T8': {'step': 0.0, 'printformat': 'n', 'open': False, 'value': 149.0},\
                 'NT.T9': {'step': 0.0, 'printformat': 'n', 'open': False, 'value': 162.0},\
                 'NT.T10': {'step': 0.0, 'printformat': 'n', 'open': False, 'value': 175.0},\
-                'RefFilt': {'step': 0.0, 'printformat': 'T4', 'open': False, 'value': 'nan'}\
+                'RefFilt': {'step': 0.0, 'printformat': ['T1.T2.T3.T4.T5.T6','T4'], 'open': False, 'value': 'nan'}\
                 },\
             'TRES3':{
                 'f0': {'step': 0.0, 'printformat': '.7f', 'open': False, 'value': 1.0},\
@@ -181,14 +181,48 @@ StartDict = {
                 'D.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
                 {'step': 0.0006, 'printformat': '.7f', 'open': False, 'value': 0.025},\
                 'v1.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
-                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.4012},\
-                'u1.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
-                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3342},\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.67675},\
                 'v2.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
-                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.2672},\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.30075},\
+                'u1.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.48875},\
                 'u2.T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11':\
-                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.0670},\
-                'RefFilt': {'step': 0.0, 'printformat': 'T7', 'open': False, 'value': 'nan'}\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.1880},\
+                'RefFilt': {'step': 0.0, 'printformat': ['T1.T2.T3.T4.T5.T6.T7.T8.T9.T10.T11','T7'], 'open': False, 'value': 'nan'}\
+                },\
+            'GJ1214':{\
+                'f0': {'step': 0.0, 'printformat': '.7f', 'open': False, 'value': 1.0},\
+                'NT.T1': {'step': 0.0, 'printformat': '.1f', 'open': False, 'value': 0.0},\
+                'NT.T2': {'step': 0.0, 'printformat': '.1f', 'open': False, 'value': 29.0},\
+                'NT.T3': {'step': 0.0, 'printformat': '.1f', 'open': False, 'value': 48.0},\
+                'NT.T4': {'step': 0.0, 'printformat': '.1f', 'open': False, 'value': 253.0},\
+                'NT.T5': {'step': 0.0, 'printformat': '.1f', 'open': False, 'value': 294.0},\
+                'NT.T6': {'step': 0.0, 'printformat': '.1f', 'open': False, 'value': 296.0},\
+                'T0.T1': {'step': 0.0001996, 'printformat': '.7f', 'open': True, 'value': 55307.8926},\
+                'T0.T2': {'step': 0.0002484, 'printformat': '.7f', 'open': True, 'value': 55353.7244},\
+                'T0.T3': {'step': 0.0004301, 'printformat': '.7f', 'open': True, 'value': 55383.7521},\
+                'T0.T4': {'step': 0.000155, 'printformat': '.7f', 'open': True, 'value': 55707.7350},\
+                'T0.T5': {'step': 0.0015295, 'printformat': '.7f', 'open': True, 'value': 55737.7627246},\
+                'T0.T6': {'step': 0.0002386, 'printformat': '.7f', 'open': True, 'value': 55775.6924415},\
+                'D.T1': {'step': 0.0004504, 'printformat': '.7f', 'open': True, 'value': 0.0179},\
+                'D.T2': {'step': 0.0011122, 'printformat': '.7f', 'open': True, 'value': 0.0179},\
+                'D.T3': {'step': 0.0009062, 'printformat': '.7f', 'open': True, 'value': 0.0179},\
+                'D.T4': {'step': 0.0004051, 'printformat': '.7f', 'open': True, 'value': 0.0179},\
+                'D.T5': {'step': 0.0041965, 'printformat': '.7f', 'open': True, 'value': 0.0179},\
+                'D.T6': {'step': 0.0004954, 'printformat': '.7f', 'open': True, 'value': 0.0179},\
+                'tG': {'step': 0.0002301, 'printformat': '.7f', 'open': True, 'value': 0.0046},\
+                'tT': {'step': 0.0001111, 'printformat': '.7f', 'open': True, 'value': 0.0326},\
+                'D.T1.T2.T3.T4.T5.T6':\
+                {'step': 0.0006, 'printformat': '.7f', 'open': False, 'value': 0.0179},\
+                'v1.T1.T2.T3.T4.T5.T6':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.8885},\
+                'v2.T1.T2.T3.T4.T5.T6':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.3843},\
+                'u1.T1.T2.T3.T4.T5.T6':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.6364},\
+                'u2.T1.T2.T3.T4.T5.T6':\
+                {'step': 0.01, 'printformat': '.4f', 'open': False, 'value': 0.2521},\
+                'RefFilt': {'step': 0.0, 'printformat': ['T1.T2.T3.T4.T5.T6','T1'], 'open': False, 'value': 'nan'}\
                 }\
             }
 
@@ -223,7 +257,7 @@ ExpectedTT = {'WASP2':{
                        'T7':54770.619079200,\
                        'T8':55381.851468700,\
                        'T9':55450.721371800,\
-                       'T10':55478.701760400},
+                       'T10':55478.701760400},\
                'XO2':{
                       'T1':54474.728770000,\
                       'T2':54508.734660000,\
@@ -234,7 +268,7 @@ ExpectedTT = {'WASP2':{
                       'T7':55494.919000000,\
                       'T8':55557.700000000,\
                       'T9':55591.705000000,\
-                      'T10':55625.710000000},
+                      'T10':55625.710000000},\
                'TRES3':{
                       'T1':54965.7055300,\
                       'T2':54995.7479000,\
@@ -246,8 +280,16 @@ ExpectedTT = {'WASP2':{
                       'T8':55678.8852700,\
                       'T9':55695.8657400,\
                       'T10':55733.7452500,\
-                      'T11':55797.7485600}
+                      'T11':55797.7485600},\
+               'GJ1214':{
+                      'T1':55307.8926,\
+                      'T2':55353.7244,\
+                      'T3':55383.7521,\
+                      'T4':55707.7350,\
+                      'T5':55737.7627246,\
+                      'T6':55775.6924415}\
               }
+
 
 fileOut = open(cfp.PicklePath+'ExpectedTT.pickle','wb')
 pickle.dump(ExpectedTT,fileOut,-1)
@@ -267,7 +309,10 @@ FirstOptAp = {'WASP2':{
                       'T1':27,'T2':19,'T3':20,
                       'T4':26,'T5':48,'T6':48,
                       'T7':20,'T8':18,'T9':19,
-                      'T10':24,'T11':19}
+                      'T10':24,'T11':19},
+                'GJ1214':{
+                      'T1':22,'T2':22,'T3':22,
+                      'T4':22,'T5':22,'T6':22}
               }
 
 fileOut = open(cfp.PicklePath+'OptApGuess.pickle','wb')

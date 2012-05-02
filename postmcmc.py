@@ -421,20 +421,20 @@ def GelmanRubinConvergence(FileList,ModelFile,OutFile, **kwargs):
                         print FileList[0], ' and ', FileList[iChain]
                         print 'try using lastN keyword'
                         sys.exit()
-                    
+
                 xmean_vector.append(np.mean(x))
                 si2_vector.append(np.var(x))
                 xi2_vector.append(np.mean(x)**2)
                 allX.extend(x)
-                
+
             xmean_vector = np.array(xmean_vector)
             si2_vector = np.array(si2_vector)
             xi2_vector = np.array(xi2_vector)
             allX = np.array(allX)
-            
+
             Bn = np.var(xmean_vector)
             W = np.mean(si2_vector)
-            
+
             sig2hat = ((smallN-1)*W)/smallN + Bn
             Vhat = sig2hat + Bn/smallM
             

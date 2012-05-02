@@ -76,6 +76,7 @@ def getTT(fileName,ObjectName):
 
     Date = SplitMore[1].strip('s')
     for key in cfp.DateStrings[ObjectName].keys():
+        #print Date, cfp.DateStrings[ObjectName][key]
         if cfp.DateStrings[ObjectName][key] == Date:
             return key
 

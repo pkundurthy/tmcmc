@@ -13,8 +13,8 @@ for Ex in ExecList:
     exec(Ex)
 
 #FitType
-#DateStrings =  cP.load(open(PicklePath+'DateInfo.pickle','rb'))
-DateStrings =  cP.load(open(PicklePath+'DateString.pickle','rb'))
+DateStrings =  cP.load(open(PicklePath+'DateInfo.pickle','rb'))
+DatePrintStrings =  cP.load(open(PicklePath+'DateString.pickle','rb'))
 ParDict = cP.load(open(PicklePath+'MCMC_MINUIT_StartInfo.pickle','rb'))
 ExpectedTT = cP.load(open(PicklePath+'ExpectedTT.pickle','rb'))
 #FirstOptAp = cP.load(open(PicklePath+'OptApGuess.pickle','rb'))
@@ -29,6 +29,7 @@ def sortTTdata(TTDicts,fitList,PeriodGuess):
 
     allTT = np.array([])
     allErrTT = np.array([])
+    
     for fitName in fitList:
         #print fitName, len(TTDicts[fitName][0]), TTDicts[fitName][0]
         allTT = np.hstack((allTT,TTDicts[fitName][0]))
@@ -37,8 +38,15 @@ def sortTTdata(TTDicts,fitList,PeriodGuess):
     minTT = min(allTT)
     epoch_raw = (allTT - minTT)/PeriodGuess
     epoch_all = np.around(epoch_raw)
+    OutFitDict = {}
+    for fitName in fitList:
+        epochr = (TTDicts[fitName][0] - minTT)/PeriodGuess
+        epocha = np.around(epochr)
+        OutFitDict[fitName] = {'epoch':epocha,\
+                               'TT':TTDicts[fitName][0],\
+                               'errTT':TTDicts[fitName][1]}
 
-    return epoch_all, allTT, allErrTT
+    return epoch_all, allTT, allErrTT, OutFitDict
 
 def getParDict(ObjectName):
     
@@ -49,6 +57,16 @@ def getParDict(ObjectName):
     for fitNum in [1,2]:
         Obj.InitiateFitNum(fitNum)
         ParFiles['MCMC.FLD.'+str(fitNum)] = Obj.ParErrorFile
+
+    Obj.InitiateCase('MCMC.OLD')
+    for fitNum in [1,2]:
+        Obj.InitiateFitNum(fitNum)
+        ParFiles['MCMC.OLD.'+str(fitNum)] = Obj.ParErrorFile
+
+    Obj.InitiateCase('MCMC.MDFLD')
+    for fitNum in [1,2]:
+        Obj.InitiateFitNum(fitNum)
+        ParFiles['MCMC.MDFLD.'+str(fitNum)] = Obj.ParErrorFile
 
     Obj.InitiateCase('MINUIT.FLD')
     for fitNum in [1,2]:
@@ -125,6 +143,11 @@ def MakeStartParams(ObjectName,FitID):
         StartParams[key] = ParDict[ObjectName][key]
         if key == 'RefFilt':
             StartParams[key]['value'] = float('nan')
+            if isinstance(StartParams[key]['printformat'],list):
+                if FitID.upper() == 'OLD' or FitID.upper() == 'FLD':
+                    StartParams[key]['printformat'] = StartParams[key]['printformat'][0]
+                else:
+                    StartParams[key]['printformat'] = StartParams[key]['printformat'][1]
         
     for key in ParDict[ObjectName].keys():
         if key.startswith('NT.') or key.startswith('T0.'):
@@ -217,7 +240,7 @@ class Object:
         self.name = name
         self.ParDict = ParDict[self.name]
         self.TT = ExpectedTT[self.name]
-        self.Dates = DateStrings[self.name]
+        self.Dates = DatePrintStrings[self.name]
         self.dataPath = MainPath+self.name+'/data/'
         self.objectPath = MainPath+self.name+'/'
         self.lcFileList = self.dataPath+self.name+'.LC.listx' 
@@ -341,7 +364,7 @@ class Object:
         
     def MakeStartFile(self, Shift):
         """         """
-
+        print self.ModelParams
         StartParams = self.ModelParams
         #Bound0 = tmcmc.mcmc.ApplyBounds(self.ModelParams,self.BoundParams)
         Bound = False
@@ -527,6 +550,7 @@ class PlotPrep:
     def OtherFits(self,FitNameList):
 
         errParDict = {}
+        print FitNameList
         for Case in FitNameList:
             X = Object(self.Object.name)
             parErrPlot = {}

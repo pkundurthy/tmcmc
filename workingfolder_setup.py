@@ -4,6 +4,7 @@ import os
 def get_user_exec():
     
     
+    """
     user = os.getlogin()
 
     if user.lower() == 'pkundurthy':
@@ -22,6 +23,13 @@ def get_user_exec():
                         "PaperFiguresPath = MainPath+\'PaperFigures/\'"]
     else:
         raise NameError("Unknown user %s" % user)
+    """
     
+    ExecStatements =["MainPath = \'/astro/store/student-scratch1/pkundurthy/final_apostle/\'",\
+                        "PicklePath = MainPath+'PickleStuff/\'",\
+                        "ObjectList = [\'WASP2\',\'XO2\',\'TRES3\',\'GJ1214\']",\
+                        "DataPrepPath = MainPath+\'DataPrep/\'",\
+                        "FigurePath = MainPath+\'OtherFigures/\'",\
+                        "PaperFiguresPath = MainPath+\'PaperFigures/\'"]
 
     return ExecStatements
