@@ -562,8 +562,15 @@ class statTriplot:
         yshift = 0
         xshift = 0
         PlotFile = False
+        TitleString = ''
         #print xfsize,yfsize,fsize
-
+        if fsize > 24.0:
+            fsize = 24.0
+        if xfsize > 18.0:
+            xfsize = 18.0
+        if yfsize > 18.0:
+            yfsize = 18.0
+            
         for key in kwargs:
             if key.lower().startswith('plotfile'):
                 PlotFile = True
@@ -578,6 +585,8 @@ class statTriplot:
                 xshift = kwargs[key]
             elif key.lower().startswith('yshift'):
                 yshift = kwargs[key]
+            elif key.lower().startswith('title'):
+                TitleString = kwargs[key]
             else:
                 pass
 
@@ -625,8 +634,9 @@ class statTriplot:
             
         plt.subplots_adjust(hspace=0)
         plt.subplots_adjust(wspace=0)
+        plt.suptitle(TitleString,fontsize=24,y=0.95)
 
         if PlotFile:
-            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.2)
+            plt.savefig(FileName,pad_inches=0.5)
         else:
             plt.show()

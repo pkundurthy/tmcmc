@@ -327,18 +327,23 @@ def writeLCFile(ObservedData,outfile):
 
 def SecondRejectOutliers(DetrendedData,ModelData,sigma,TT):
     """                                     """
-    
+
     scatter1 = np.abs(np.array(DetrendedData['y'])-np.array(ModelData['y']))
-    mm1, sdv1, ngood1, goodindex1, badindex1 = tmcmc.binning.MedianMeanOutlierRejection(scatter1,sigma,'median')
+    mm1, sdv1, ngood1, goodindex1, badindex1 = \
+        tmcmc.binning.MedianMeanOutlierRejection(scatter1,sigma,'median')
+
     scatter2 = DetrendedData['yerr']
-    mm2, sdv2, ngood2, goodindex2, bad_err = tmcmc.binning.MedianMeanOutlierRejection(scatter2,3e0,'median')
+    mm2, sdv2, ngood2, goodindex2, bad_err = \
+        tmcmc.binning.MedianMeanOutlierRejection(scatter2,3e0,'median')
     #bad_err = np.where(scatter2 > 0.01e0)[0]
-    
+
     DetrendedData['y'][bad_err] = float('inf')
     scatter = np.abs(np.array(DetrendedData['y'])-np.array(ModelData['y']))
-    #print len(scatter), sigma, baderr, TT
+    #print len(scatter), sigma, bad_err, TT
+
     mm, sdv, ngood, goodindex, badindex = \
-    tmcmc.binning.MedianMeanOutlierRejection(scatter,sigma,'median')
+        tmcmc.binning.MedianMeanOutlierRejection(scatter,sigma,'median')
+
     goodi = goodindex
     badi = badindex
 

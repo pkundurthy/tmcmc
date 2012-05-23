@@ -3,6 +3,7 @@ import numpy as np
 import scipy.stats
 from iopostmcmc import readMCMChdr, read1parMCMC
 from iopostmcmc import isNonParam
+#import pylab as plt
 from matplotlib import pyplot as plt
 import itertools
 import sys

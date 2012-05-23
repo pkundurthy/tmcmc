@@ -27,17 +27,33 @@ def FitLabels(CaseName):
     fitLabel = None
     mtype = None
     mcolor = None
-    OtherFits = {'burke2007':(r'Burke et al. (2007)','*','m'),\
-                 'fernandez2009':(r'Fernandez et al. (2009)','D','m'),\
-                 'sing2011':(r'Sing et al. (2011)','s','m'),\
-                 'odonovan2007':(r'O\'Donovan et al. (2007)','^','m'),\
-                 'sozzetti2009':(r'Sozetti et al. (2009)','s','m'),\
-                 'gibson2009':(r'Gibson et al. (2009)','D','m'),\
-                 'christiansen2011':(r'Christiansen et al. (2011)','*','m'),\
-                 'lee2011':(r'Lee et al. (2011)','v','m'),\
-                 'sada2012':(r'Sada et al. (2012)','s','m'),\
-                 'southworth2011':(r'Southworth (20011)','H','m')\
-                 }
+    Other_WASP2_Fits = {}
+    Other_GJ1214_Fits = {'charbonneau2009':(r'Charbonneau et al. (2009)','s','b'),\
+                         'sada2010':(r'Sada et al. (2010)','*','b'),\
+                         'carter2011':(r'Carter et al. (2011)','^','b'),\
+                         'kundurthy2011':(r'Kundurthy et al. (2011)','o','b'),\
+                         'berta2011':(r'Berta et al. (2011)','H','b'),\
+                         'bean2011':(r'Bean et al. (2011)','D','b'),\
+                         'croll2011':(r'Croll et al. (2011)','<','b'),\
+                         'desert2011':(r'D{\'e}sert et al. (2011)','>','b'),\
+                         'demooij2012':(r'de Mooij et al. (2012)','v','b'),\
+                         'berta2012':(r'Berta et al. (2012)','h','b') }
+
+    Other_XO2_Fits = {'burke2007':(r'Burke et al. (2007)','*','b'),\
+                      'fernandez2009':(r'Fernandez et al. (2009)','D','b'),\
+                      'sing2011':(r'Sing et al. (2011)','s','b')}
+
+    Other_TRES3_Fits = {'odonovan2007':(r'O\'Donovan et al. (2007)','^','b'),\
+                 'sozzetti2009':(r'Sozetti et al. (2009)','s','b'),\
+                 'gibson2009':(r'Gibson et al. (2009)','D','b'),\
+                 'christiansen2011':(r'Christiansen et al. (2011)','*','b'),\
+                 'lee2011':(r'Lee et al. (2011)','v','b'),\
+                 'sada2012':(r'Sada et al. (2012)','s','b'),\
+                 'southworth2011':(r'Southworth (20011)','H','b')}
+    OtherFits = {}
+    OtherFits.update(Other_GJ1214_Fits)
+    OtherFits.update(Other_XO2_Fits)
+    OtherFits.update(Other_TRES3_Fits)
 
     if CaseName.lower().startswith('mcmc'):
         fitLabel = r'TMCMC'
@@ -92,6 +108,63 @@ def Tfilter(TT,objectName):
         TT = 'r\''
 
     return TT
+
+def TableEntry(errEntry,par,fStr):
+
+    Entry = 'Wrong'
+
+    if par == 'Period':
+        Val = format(errEntry[par]['value'],fStr)
+    elif par.startswith('T0'):
+        Val = format(errEntry[par]['value'],fStr)
+    else:
+        Val = format(errEntry[par]['value'],fStr)
+
+    if np.isnan(errEntry[par]['lower']) or \
+       np.isnan(errEntry[par]['upper']):
+        Entry = '('+format(errEntry[par]['value'],fStr)+')'
+    elif (errEntry[par]['lower'] != errEntry[par]['upper']) and \
+        not errEntry[par]['useSingle']:
+        Upp = format(errEntry[par]['upper'],fStr)
+        Low = format(errEntry[par]['lower'],fStr)
+        if float(Upp) == 0e0 or float(Low) == 0e0:
+            maxerr = max([errEntry[par]['upper'],errEntry[par]['lower']])
+            errPart = '$\pm$'+format(maxerr,fStr) 
+            Entry = Val+errPart
+        elif float(Upp) == float(Low):
+            maxerr = max([errEntry[par]['upper'],errEntry[par]['lower']])
+            errPart = '$\pm$'+format(maxerr,fStr) 
+            Entry = Val+errPart
+        else:
+            errPart = '$^{+'+Upp+'}_{-'+Low+'}$'
+            Entry = Val+errPart
+    else:
+        maxerr = max([errEntry[par]['upper'],errEntry[par]['lower']])
+        errPart = '$\pm$'+format(maxerr,fStr)
+        Entry = Val+errPart
+
+    return Entry
+
+def TUString(parName):
+
+    if parName.startswith('T0'):
+        UString = 'BJD'
+    elif parName.startswith('vel'):
+        UString = 'days$^{-1}$'
+    elif parName == 'tT':
+        UString = 'days'
+    elif parName == 'tG':
+        UString = 'days'
+    elif parName == 'Period':
+        UString = r'Period+ (sec)'
+    elif parName == 'inc':
+        UString = r'$^{o} (deg)$'
+    elif parName.startswith('rho'):
+        UString = 'g/cc'
+    else:
+        UString = '-'
+        
+    return UString
 
 def TForm(parName,**kwargs):
 
@@ -161,10 +234,10 @@ def TForm(parName,**kwargs):
                 TT = Tfilter(TT,objectName)
             else:
                 pass
-        parSym = r'$(R_{p}/R_{*})_{\textrm{(%s)}}$' % (TT)
+        parSym = r'$(R_{p}/R_{\star})_{\textrm{(%s)}}$' % (TT)
         AxFormat = FormatStrFormatter('%.4f')
     elif parName.startswith('vel'):
-        parSym = r'$\nu/R_{*}$'
+        parSym = r'$\nu/R_{\star}$'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName == 'tT':
         parSym = r'$t_{T}$'
@@ -173,7 +246,7 @@ def TForm(parName,**kwargs):
         parSym = r'$t_{G}$'
         AxFormat = FormatStrFormatter('%.4f')
     elif parName.startswith('aRs'):
-        parSym = r'$a/R_{*}$'
+        parSym = r'$a/R_{\star}$'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName == 'b':
         parSym = r'b'
@@ -185,7 +258,7 @@ def TForm(parName,**kwargs):
         parSym = r'i'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName.startswith('rho'):
-        parSym = r'$\rho_{*}$'
+        parSym = r'$\rho_{\star}$'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName.startswith('sigwhite'):
         parSplit = map(str,parName.split('.'))
@@ -215,21 +288,28 @@ def TransitTableFormat(allpars,**kwargs):
 
 def TStatForm(parName,**kwargs):
     
+    MD = False
+    objectName = ''
+    
+    for key in kwargs:
+        if key.lower().startswith('multidepth'):
+            MD = kwargs[key]
+        if key.lower().startswith('object'):
+            objectName = kwargs[key]
+            
     if parName.startswith('T0'):
-        parSym = returnTsub(parName,**kwargs)
+        parSym = returnTsub(parName)
     elif parName.startswith('D'):
         msplit = map(str,parName.split('.'))
-        TT = ''
-        for i in range(len(msplit)):
-            if i > 0: 
-                TT += returnTsub(msplit[i],**kwargs).strip('$')+' '
-        for key in kwargs:
-            if key.lower().startswith('object'):
-                objectName = kwargs[key]
-                TT = Tfilter(TT,objectName)
-            else:
-                pass
-        parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+        if not MD:
+            TT = returnTsub(msplit[1]).strip('$')+' '
+            TT = Tfilter(TT,objectName)
+            #TT = Tfilter(TT,objectName)
+            parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+        else:
+            TT = msplit[1].strip('T')
+            parSym = '$'+msplit[0]+'_{(%s)}$' % TT
+        #print parSym
     elif parName == 'tT':
         parSym = r'$t_{T}$'
     elif parName == 'tG':
@@ -238,7 +318,7 @@ def TStatForm(parName,**kwargs):
         msplit = map(str,parName.split('.'))
         TT = ''
         for i in range(len(msplit)):
-            if i > 0: TT += returnTsub(msplit[i],**kwargs).strip('$')+' '
+            if i > 0: TT += returnTsub(msplit[i]).strip('$')+' '
         for key in kwargs:
             if key.lower().startswith('object'):
                 objectName = kwargs[key]
@@ -247,7 +327,7 @@ def TStatForm(parName,**kwargs):
                 pass
         parSym = '$'+msplit[0]+'_{(%s)}$' % TT
     elif parName.startswith('vel'):
-        parSym = r'$\nu/R_{*}$'
+        parSym = r'$\nu/R_{\star}$'
     else:
         parSym = parName
 

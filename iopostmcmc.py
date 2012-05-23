@@ -529,6 +529,38 @@ def correctionFromDTfile(file,NuisONOFF):
             DTco[istep-1].update({tag:Correction})
 
     return DTco
+                
+def getEffAllAutoCorStat(fileName):
+    """ read all the AutoCorStatistics """
+    
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+
+    AcorStat = {}
+    ParData = []
+    for line in FileObject:
+        if line.startswith('##'):
+            Split1 = map(str, line.split('##'))
+            par = Split1[1].strip()
+            Split2 = map(str, Split1[2].split('='))
+            if par.lower() == 'all' and Split2[0].strip().startswith('Eff'):
+                Eff = long(Split2[1])
+            else:
+                AcorStat[par] = {'Corr':None,'Eff':None}
+                if Split2[0].strip().startswith('Corr'):
+                    Corr = long(Split2[1])
+                    ParData.append((par,'Corr',Corr))
+                elif Split2[0].strip().startswith('Eff'):
+                    Eff = long(Split2[1])
+                    ParData.append((par,'Eff',Eff))
+                else:
+                    pass
+
+    for el in ParData:
+        AcorStat[el[0]][el[1]] = el[2]
+
+    return AcorStat
+
 
 def getEffAutoCorStatFile(fileName):
     """ read the AutoCorStatistics """
@@ -553,3 +585,36 @@ def getEffAutoCorStatFile(fileName):
 
     EffList = np.array(EffList)
     return ParList[EffList.argmin()], min(EffList)
+
+def getAllChainStats(fileName):
+    """ read the AutoCorStatistics """
+
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+
+    for line in FileObject:
+        if line.startswith('##'):
+            Split1 = map(str, line.split('##'))
+            par = Split1[1].strip()
+            Split2 = map(str, Split1[2].split('='))
+            if par.lower() == 'all' and Split2[0].strip().startswith('Chain'):
+                ChainLength = long(Split2[1])
+            if par.lower() == 'all' and Split2[0].strip().startswith('Eff'):
+                Eff = long(Split2[1])
+            if par.lower() == 'all' and Split2[0].strip().startswith('Corr'):
+                Corr = long(Split2[1])
+
+    return ChainLength, Corr, Eff
+            
+def readGRStat(fileName):
+    """ read GR Stat file """
+    
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+    OutDict = {}
+    for line in FileObject:
+        if not line.startswith('#'):
+            LineSplit = map(str, line.split('='))
+            OutDict[LineSplit[0].strip()] = LineSplit[1].strip()
+    
+    return OutDict

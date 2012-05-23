@@ -4,7 +4,7 @@ import numpy as np
 import os
 import sys
 np.seterr(divide='ignore')
-import pylab as plt
+#import pylab as plt
 
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
@@ -333,6 +333,7 @@ def checkRealRoots(a5,a4,a0):
         
         Based on Strum theorem
     """
+    
     x = 1e-6
     f_S = tqsextic(x,a5,a4,a0)
     f6_S = f_S['f']
@@ -519,7 +520,7 @@ def computePeriod(ModelParams):
         print 'ERROR: add at least one more transit time so that ephemeris may be computed'
         Period = 0
         sys.exit()
-        
+
     return Period
 
 def TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):

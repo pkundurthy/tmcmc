@@ -58,20 +58,20 @@ def getParDict(ObjectName):
         Obj.InitiateFitNum(fitNum)
         ParFiles['MCMC.FLD.'+str(fitNum)] = Obj.ParErrorFile
 
-    Obj.InitiateCase('MCMC.OLD')
-    for fitNum in [1,2]:
-        Obj.InitiateFitNum(fitNum)
-        ParFiles['MCMC.OLD.'+str(fitNum)] = Obj.ParErrorFile
+    #Obj.InitiateCase('MCMC.OLD')
+    #for fitNum in [1,2]:
+        #Obj.InitiateFitNum(fitNum)
+        #ParFiles['MCMC.OLD.'+str(fitNum)] = Obj.ParErrorFile
 
-    Obj.InitiateCase('MCMC.MDFLD')
-    for fitNum in [1,2]:
-        Obj.InitiateFitNum(fitNum)
-        ParFiles['MCMC.MDFLD.'+str(fitNum)] = Obj.ParErrorFile
+    #Obj.InitiateCase('MCMC.MDFLD')
+    #for fitNum in [1,2]:
+        #Obj.InitiateFitNum(fitNum)
+        #ParFiles['MCMC.MDFLD.'+str(fitNum)] = Obj.ParErrorFile
 
-    Obj.InitiateCase('MINUIT.FLD')
-    for fitNum in [1,2]:
-        Obj.InitiateFitNum(fitNum)
-        ParFiles['MINUIT.FLD.'+str(fitNum)] = Obj.ParErrorFile
+    #Obj.InitiateCase('MINUIT.FLD')
+    #for fitNum in [1,2]:
+        #Obj.InitiateFitNum(fitNum)
+        #ParFiles['MINUIT.FLD.'+str(fitNum)] = Obj.ParErrorFile
 
     Obj.InitiateTAP()
     Obj.setTAPErrorFile()
@@ -85,7 +85,7 @@ def getParDict(ObjectName):
 
     ParDict = {}
     for fitName in ParFiles.keys():
-        #print ParFiles[fitName]
+        print ParFiles[fitName]
         ParDict[fitName] = tmcmc.iopostmcmc.readErrorFile(ParFiles[fitName])
 
     return ParDict, ParFiles, Obj
@@ -265,6 +265,7 @@ class Object:
         
         self.fitNum = str(fitNum).zfill(4)
         self.StartFile = self.objectPath+'START.'+self.name+'.'+self.fitID+'.'+self.fitNum+'.par'
+        self.ModelParams = tmcmc.iomcmc.ReadStartParams(self.StartFile)
 
         FileRoot = self.casePath+self.name+'.'+self.case+'.'+self.fitNum
         self.ErrorFile = FileRoot+self.fitMethod+'.err'
@@ -364,7 +365,7 @@ class Object:
         
     def MakeStartFile(self, Shift):
         """         """
-        print self.ModelParams
+        #print self.ModelParams
         StartParams = self.ModelParams
         #Bound0 = tmcmc.mcmc.ApplyBounds(self.ModelParams,self.BoundParams)
         Bound = False
@@ -573,6 +574,7 @@ class PlotPrep:
                         tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
                 except:
                     try:
+                        print Case
                         X.OtherFitFiles(Case)
                         parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
                         ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
