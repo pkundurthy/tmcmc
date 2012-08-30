@@ -197,10 +197,14 @@ def read1parMCMC(filename,parname, **kwargs):
             
     return out_data
             
-def cropMCMC(mcmcfile,outfile,cropperc,NumCropLine):
+def cropMCMC(mcmcfile,outfile,cropperc,NumCropLine,**kwargs):
     """ Removes the "burn-in" phase of the MCMC and writes a 
     shortened MCMC data file 
     """
+    silent = True
+    for key in kwargs:
+        if key.lower().startswith('sil'):
+            silent = kwargs[key]
     
     hdrkeys = readMCMChdr(mcmcfile)
     Nparams = getNparams(hdrkeys)
@@ -220,11 +224,11 @@ def cropMCMC(mcmcfile,outfile,cropperc,NumCropLine):
                 data_line = ReadMCMCline(line,hdrkeys)
                 if Nparams == 1:
                     if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
-                        print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                        if not silent: print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
                         print >> outfileObject, line.strip('\n')
                 if Nparams > 1:
                     if data_line['acr'] > 0.23-cropperc and data_line['acr'] < 0.23+cropperc:
-                        print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                        if not silent: print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
                         print >> outfileObject, line.strip('\n')
 
     outfileObject.close()
@@ -529,6 +533,34 @@ def correctionFromDTfile(file,NuisONOFF):
             DTco[istep-1].update({tag:Correction})
 
     return DTco
+
+def WriteLowestChisqMedian(file,ModelParams,OutFileName,ShowOutput):
+    """ Finds the median in MCMC and prints to a file
+        of format similar to the start paramfile.
+        Inputs 
+            file - the MCMC file
+            ModelPars
+            OutFileName
+        Output
+            a file with OutFileName
+    """
+    
+    ModelParamsCopy = {}
+    
+    for key in ModelParams.keys():
+        if ModelParams[key]['open']:
+            if ShowOutput: print 'reading data for '+key
+            data = read1parMCMC(file,key)
+            ModelParamsCopy[key] = {'value':np.median(data[key]),\
+                                    'step':ModelParams[key]['step'],\
+                                    'printformat':ModelParams[key]['printformat'],\
+                                    'open':ModelParams[key]['open']}
+        else:
+            ModelParamsCopy[key] = {'value':ModelParams[key]['value'],\
+                                    'step':ModelParams[key]['step'],\
+                                    'printformat':ModelParams[key]['printformat'],\
+                                    'open':ModelParams[key]['open']}
+    PrintModelParams(ModelParamsCopy,OutFileName)
                 
 def getEffAllAutoCorStat(fileName):
     """ read all the AutoCorStatistics """

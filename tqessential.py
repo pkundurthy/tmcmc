@@ -536,7 +536,7 @@ def TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
     return flux
 
 def slopefitquick(x,y):
-    """ Computes the best-fit slope only, given x and y data. Used for computing the ephemeris within the MultiTransitquick """
+    """ Computes the best-fit slope only, given x and y data. Used for computing the ephemeris within MultiTransitquick """
 
     x = np.array(x)
     y = np.array(y)

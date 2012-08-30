@@ -58,15 +58,15 @@ def getParDict(ObjectName):
         Obj.InitiateFitNum(fitNum)
         ParFiles['MCMC.FLD.'+str(fitNum)] = Obj.ParErrorFile
 
-    #Obj.InitiateCase('MCMC.OLD')
-    #for fitNum in [1,2]:
-        #Obj.InitiateFitNum(fitNum)
-        #ParFiles['MCMC.OLD.'+str(fitNum)] = Obj.ParErrorFile
+    Obj.InitiateCase('MCMC.OLD')
+    for fitNum in [1,2]:
+        Obj.InitiateFitNum(fitNum)
+        ParFiles['MCMC.OLD.'+str(fitNum)] = Obj.ParErrorFile
 
-    #Obj.InitiateCase('MCMC.MDFLD')
-    #for fitNum in [1,2]:
-        #Obj.InitiateFitNum(fitNum)
-        #ParFiles['MCMC.MDFLD.'+str(fitNum)] = Obj.ParErrorFile
+    Obj.InitiateCase('MCMC.MDFLD')
+    for fitNum in [1,2]:
+        Obj.InitiateFitNum(fitNum)
+        ParFiles['MCMC.MDFLD.'+str(fitNum)] = Obj.ParErrorFile
 
     #Obj.InitiateCase('MINUIT.FLD')
     #for fitNum in [1,2]:
@@ -323,6 +323,29 @@ class Object:
         exec(self.FuncExecString % self.FuncName)
         self.ModelData = ModelFunc(self.ModelParams,self.ObservedData)
         self.DetrendedData = tmcmc.mcmc.DetrendData(self.ObservedData,self.ModelData,self.NuisanceData,'',False)
+        if self.name == 'GJ1214':
+            TempObserved = tmcmc.mcmc.ReadMultiList(self.objectPath+'spotflaresed/GJ1214.LC.listx')
+            TempNuisance = tmcmc.mcmc.ReadDetrendFile(self.objectPath+'spotflaresed/GJ1214.NUS.onoffx')
+            TempModel = ModelFunc(self.ModelParams,TempObserved)
+            TempDetrended = tmcmc.mcmc.DetrendData(TempObserved,TempModel,TempNuisance,'',False)
+            ActTags = ['T1','T2','T4','T5']
+            DT_activity = {} 
+            for fileLC in os.listdir(self.dataPath):
+                for TT in ActTags:
+                    if fileLC.endswith(TT+'.spfl.lcx'):
+                        Data = tmcmc.iomcmc.ReadSingleDataFile(self.dataPath+fileLC)
+                        xSp = np.array(Data['all']['x'])
+                        tDt = np.array(TempDetrended[TT]['x'])
+                        idx = np.mod(tDt.searchsorted(xSp),len(tDt))
+                        idx = idx[tDt[idx] == xSp]
+                        xData = np.array(TempDetrended[TT]['x'])
+                        yData = np.array(TempDetrended[TT]['y'])
+                        yErr = np.array(TempDetrended[TT]['yerr'])
+                        DT_activity[TT] = {'x':xData[idx],\
+                                           'y':yData[idx],
+                                           'yerr':yErr[idx]}
+            self.Activity = DT_activity
+            
 
     def InitiateTAP(self):
         
@@ -433,7 +456,7 @@ class Object:
 
         allT = []
         for Tnum in self.ObservedData['all']['tagorder'].keys():
-            allT.extend(TempObserved['T'+str(Tnum)]['x']) 
+            allT.extend(TempObserved['T'+str(Tnum)]['x'])
 
         TempObserved['all'] = {'x':np.array(allT),'tagorder':self.ObservedData['all']['tagorder']}
 
@@ -460,27 +483,8 @@ class Object:
         NCount = None
         for TTnum in xrange(TTcount):
             TT = 'T'+str(TTnum+1)
-            #if TTnum != TTcount-1: 
-                #NCount = self.ModelParams['NT.T'+str(TTnum+2)]['value'] -\
-                         #self.ModelParams['NT.'+TT]['value']
-                #NCount = long(NCount)
-                #if self.name == 'XO2': 
-                    #P = 2.615859997
-                    #T0 = self.ModelParams['T0.T1']['value']
-                #if self.name == 'TRES3': 
-                    #P = 1.306187245
-                    #T0 = self.ModelParams['T0.T1']['value']
-            #else:
-                #NCount = None
-            #print NCount
             FileName = self.DetrendedDataPath+self.name+'.'+TT+'.lcdtx'
             LCOutFile = open(FileName,'w')
-            #print 'writing '+FileName
-            #print >> LCOutFile, '# BJD   |   flux   |   err_flux '
-            #epoch = self.ModelParams['NT.'+TT]['value']-self.ModelParams['NT.T1']['value']
-            #print epoch, self.ModelParams['T0.T1']['value'],\
-                         #self.ModelParams['T0.'+TT]['value'],\
-                         #self.ModelParams['T0.'+TT]['value']-(P*(epoch-TTnum)), TTnum
             for i in range(len(self.DetrendedData[TT]['x'])):
                 timeStr0 = format(self.DetrendedData[TT]['x'][i],'.7f')
                 #timeStr1 = format(self.DetrendedData[TT]['x'][i]-(P*(epoch-TTnum)),'.7f')

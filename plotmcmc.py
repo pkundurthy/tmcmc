@@ -514,6 +514,8 @@ class triplot:
 
         if PlotFile:
             plt.savefig(FileName,bbox_inches='tight',pad_inches=0.5)
+            #plt.savefig(FileName,bbox_inches='tight')
+            #plt.savefig(FileName,pad_inches=0.5)
         else:
             plt.show()
 

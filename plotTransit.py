@@ -56,17 +56,17 @@ def FitLabels(CaseName):
     OtherFits.update(Other_TRES3_Fits)
 
     if CaseName.lower().startswith('mcmc'):
-        fitLabel = r'TMCMC'
+        fitLabel = r'APOSTLE (TMCMC)'
         mtype = 'o'
         mcolor = 'k'
     elif CaseName.lower().startswith('minuit'):
-        fitLabel = r'Minuit'
+        fitLabel = r'APOSTLE (Minuit)'
         mtype = 's'
         mcolor = 'b'
     elif CaseName.lower().startswith('tap'):
-        fitLabel = r'TAP'
+        fitLabel = r'APOSTLE (TAP)'
         mtype = 'o'
-        mcolor = 'g'
+        mcolor = 'w'
     else:
         fitLabel,mtype,mcolor = OtherFits[CaseName]
 
@@ -255,7 +255,7 @@ def TForm(parName,**kwargs):
         parSym = r'Period+ (sec)'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName == 'inc':
-        parSym = r'i'
+        parSym = r'$i_{orb}$'
         AxFormat = FormatStrFormatter('%.2f')
     elif parName.startswith('rho'):
         parSym = r'$\rho_{\star}$'
