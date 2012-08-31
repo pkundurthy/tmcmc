@@ -14,7 +14,7 @@ def get_user_exec():
                         "FigurePath = MainPath+\'OtherFigures/\'",\
                         "PaperFiguresPath = MainPath+\'PaperFigures/\'"]
     elif user.lower() == 'acbecker':
-        ExecStatements =["MainPath = \'/astro/users/acbecker/APOSTLE/runs/WASP2_new/\'",\
+        ExecStatements =["MainPath = \'/astro/users/acbecker/APOSTLE/runs/WASP2_new/WASP2/\'",\
                         "PicklePath = MainPath+'PickleStuff/\'",\
                         "ObjectList = [\'WASP2\',\'XO2\',\'TRES3\',\'GJ1214\']",\
                         "DataPrepPath = MainPath+\'DataPrep/\'",\
