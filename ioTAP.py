@@ -1,5 +1,46 @@
+import sys
 
+def ReadSingleTAP_MCMCFile(fileName):
+    """
+    
+    """
+    
+    print fileName
+    file_object = open(fileName,'r')
 
+    HashCount = 0
+    iCount = 0
+    OutDict = {}
+    Tags = []
+    while True:
+        try:
+            line = file_object.next()
+        except:
+            break
+        if line.startswith('#'):
+            HashCount += 1
+            if HashCount == 4:
+                Split = map(str, line.split())
+                Tags = Split[1:]
+            try:
+                OutDict['index'] = []
+                for i in range(len(Tags)):
+                    OutDict[Tags[i].strip()] = []
+            except:
+                print 'TAP MCMC reader does not work'
+                sys.exit()
+        else:
+            iCount += 1
+            SplitData = map(float, line.split())
+            OutDict['index'].append(iCount)
+            for i in range(len(Tags)):
+                OutDict[Tags[i].strip()].append(SplitData[i])
+            print OutDict['index'][-1]
+            
+    
+    return OutDict
+        
+    
 def ReadSingleTAP_DataFile(fileName):
     """ Returns a dictionary pf x,y,yerr data after reading a generic data file.
         Data file should have the following form:
@@ -301,3 +342,4 @@ def getTAP_TTs(Section):
         
         if 'Overview of TAP MCMC Parameters' in Section[sec]:
             pass
+

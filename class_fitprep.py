@@ -219,6 +219,18 @@ def readTAPdata(Path):
 
     return DT
         
+def readTAPdata_mcmc(Path):
+    
+    MCMCData = {}
+    for MCMCName in os.listdir(Path):
+        if MCMCName.startswith('TAPmcmc_'):
+            for mcmcFile in os.listdir(Path+'/'+MCMCName):
+                if mcmcFile.endswith('MCMC.ascii'):
+                    MCMCData = tmcmc.ioTAP.ReadSingleTAP_MCMCFile(Path+'/'+MCMCName+'/'+mcmcFile)
+                    
+    return MCMCData
+    
+        
 def getTAPfitTables(casePath):
     """ return path to tex file """
     
@@ -348,12 +360,16 @@ class Object:
             
 
     def InitiateTAP(self):
-        
+
         self.case = 'TAP'
         self.fitMethod = 'TAP'
         self.casePath = MainPath+self.name+'/'+self.case+'/'
         self.DetrendedData = readTAPdata(self.casePath)
         self.FitTables = getTAPfitTables(self.casePath)
+    
+    def InitiateTAP_MCMC(self):
+        self.TAPMCMC = readTAPdata_mcmc(self.casePath)
+        
         
     def printTAP_Output(self):
         
@@ -555,10 +571,52 @@ class PlotPrep:
     def OtherFits(self,FitNameList):
 
         errParDict = {}
-        print FitNameList
+        #print FitNameList
+        #X = Object(self.Object.name)
+        #X.OtherFitFiles(FitNameList[0])
+        #X.InitiateCase(FitNameList[0])
+        #X.InitiateTAP()
+        #print dir(X)
+        #print X
+        #sys.exit()
+        
         for Case in FitNameList:
             X = Object(self.Object.name)
             parErrPlot = {}
+            if Case == 'TAP':
+                X.InitiateTAP()
+                #print dir(X)
+                if len(X.FitTables.keys()) == 0:
+                    raise
+                else:
+                    X.setTAPErrorFile()
+                    parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+                    ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+                    parErrPlot = \
+                    tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
+            elif Case.startswith('MCMC'):
+                X.InitiateCase(Case)
+                X.InitiateFitNum(self.Object.fitNum)
+                parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+                ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+                parErrPlot = tmcmc.plotTransit.parTimeDay2Sec(ParErr,self.Object.ModelParams)
+            else:
+                X.OtherFitFiles(Case)
+                #print X.ParErrorFile
+                parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
+                ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
+                parErrPlot = ParErr
+                
+            fitLabel,mtype,mcolor = tmcmc.plotTransit.FitLabels(Case)
+            errParDict[Case] = {'pdict':parErrPlot,\
+                                'fitLabel':fitLabel,'mtype':mtype,\
+                                'mcolor':mcolor}
+        
+        if len(errParDict.keys()) > 0:
+          self.OtherParErr = errParDict
+            
+            #print Case
+        """
             try:
                 X.InitiateCase(Case)
                 X.InitiateFitNum(self.Object.fitNum)
@@ -580,20 +638,13 @@ class PlotPrep:
                     try:
                         print Case
                         X.OtherFitFiles(Case)
+                        print X.ParErrorFile
                         parErr = tmcmc.iopostmcmc.readErrorFile(X.ParErrorFile)
                         ParErr = tmcmc.plotTransit.parErr4Plot(parErr)
                         parErrPlot = ParErr
                     except:
                         raise NameError('All tries of fits failed')
-
-            fitLabel,mtype,mcolor = tmcmc.plotTransit.FitLabels(Case)
-            errParDict[Case] = {'pdict':parErrPlot,\
-                                'fitLabel':fitLabel,'mtype':mtype,\
-                                'mcolor':mcolor}
-
-        if len(errParDict.keys()) > 0:
-            self.OtherParErr = errParDict
-
+            """
     #def initOCPlot(self, **kwargs):
         
         #TTdictionary = {}

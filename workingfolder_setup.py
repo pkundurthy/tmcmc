@@ -6,7 +6,7 @@ def get_user_exec():
     
     user = os.getlogin()
 
-    if user.lower() == 'pkundurthy':
+    if user.lower() == 'pravk7':
         ExecStatements =["MainPath = \'/astro/store/student-scratch1/pkundurthy/final_apostle/\'",\
                         "PicklePath = MainPath+'PickleStuff/\'",\
                         "ObjectList = [\'WASP2\',\'XO2\',\'TRES3\',\'GJ1214\']",\
