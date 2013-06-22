@@ -2,6 +2,7 @@
 from iomcmc import ReadHeaderMCMC, ReadMCMCline, ReadDetrendFile
 from iomcmc import PrintModelParams, ReadStartParams
 from mcmc import DetrendData
+from tmcmc.misc import String2Bool
 import numpy as np
 import scipy
 import sys
@@ -28,9 +29,7 @@ def readStatHeaders(FileName):
     return col, row
             
 def readStatsFile(FileName):
-    """
-    
-    """
+    """         """
     
     ColN, RowN = readStatHeaders(FileName)
     fileObj = open(FileName,'r')
@@ -52,9 +51,7 @@ def readStatsFile(FileName):
     return Dict
     
 def readALLStats(**kwargs):
-    """
-        read data from stats files
-    """
+    """     read data from stats files  """
 
     fileList = {}
     if len(kwargs) > 0:
@@ -84,9 +81,7 @@ def readALLStats(**kwargs):
     return Stats
 
 def isNonParam(key):
-    """
-        checks if a given MCMC data key is not a model parameter.
-    """
+    """ checks if a given MCMC data key is not a model parameter. """
     
     if key == 'acr' or key == 'frac' or key == 'chi1'\
     or key == 'chi2' or key == 'istep':
@@ -121,7 +116,7 @@ def readMCMChdr(filename):
         sys.exit(1)
 
     return hdrkeys
-
+    
 def getPars(filename):
     """ return list of parameters only """
     
@@ -158,7 +153,7 @@ def readMCMC(filename):
 
     return out_data
    
-def read1parMCMC(filename,parname):
+def read1parMCMC(filename,parname, **kwargs):
     """
         Reads a single column of data from an MCMC file 
         and store it into a dictionary.
@@ -168,7 +163,7 @@ def read1parMCMC(filename,parname):
         OUTPUTS
             data dictionary - with MCMC and related stats
      """
-     
+
     out_data = {}
     hdrkeys = readMCMChdr(filename)
     found = False
@@ -182,9 +177,9 @@ def read1parMCMC(filename,parname):
             continue
 
     if not found:
-            print hdrkeys
-            print 'Parameter ', parname, ' not found'
-            sys.exit()
+        print hdrkeys
+        print 'Parameter ', parname, ' not found'
+        sys.exit()
     
     mcmcFile = open(filename,'r')
     mcmcFile = mcmcFile.readlines()
@@ -193,13 +188,52 @@ def read1parMCMC(filename,parname):
             data_line = ReadMCMCline(line,hdrkeys)
             out_data[parname].append(data_line[parname])
             out_data['istep'].append(data_line['istep'])
-            out_data['chi1'].append(data_line['chi1'])
-            out_data['frac'].append(data_line['frac'])
-            out_data['acr'].append(data_line['acr'])
-
+            try:
+                out_data['chi1'].append(data_line['chi1'])
+                out_data['frac'].append(data_line['frac'])
+                out_data['acr'].append(data_line['acr'])
+            except:
+                pass
+            
     return out_data
             
-def cropMCMC(mcmcfile,outfile,cropperc):
+def cropMCMC(mcmcfile,outfile,cropperc,NumCropLine,**kwargs):
+    """ Removes the "burn-in" phase of the MCMC and writes a 
+    shortened MCMC data file 
+    """
+    silent = True
+    for key in kwargs:
+        if key.lower().startswith('sil'):
+            silent = kwargs[key]
+    
+    hdrkeys = readMCMChdr(mcmcfile)
+    Nparams = getNparams(hdrkeys)
+
+    outfileObject = open(outfile,'w')
+    mcmcfileobj = open(mcmcfile,'r')
+    mcmcfileobj = mcmcfileobj.readlines()
+    
+    NLine = 0
+    for line in mcmcfileobj:
+        NLine += 1
+        if line.startswith('#'):
+            print >> outfileObject, line.strip('\n')
+        
+        if NLine > NumCropLine:
+            if not line.startswith('#'):
+                data_line = ReadMCMCline(line,hdrkeys)
+                if Nparams == 1:
+                    if data_line['acr'] > 0.44-cropperc and data_line['acr'] < 0.44+cropperc:
+                        if not silent: print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                        print >> outfileObject, line.strip('\n')
+                if Nparams > 1:
+                    if data_line['acr'] > 0.23-cropperc and data_line['acr'] < 0.23+cropperc:
+                        if not silent: print 'printing ',format(data_line['istep'],'n'),' acr ',data_line['acr']
+                        print >> outfileObject, line.strip('\n')
+
+    outfileObject.close()
+
+def cropMCMC_old(mcmcfile,outfile,cropperc):
     """ Removes the "burn-in" phase of the MCMC and writes a 
     shortened MCMC data file 
     """
@@ -260,6 +294,26 @@ def makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile
 
     PrintModelParams(ModelParams,OutputParamFile)
 
+def readErrorFile(errorFile):
+    """
+    
+    """
+    
+    errFile = open(errorFile,'r')
+    errFile = errFile.readlines()
+    
+    errData = {}
+    for line in errFile:
+        if not line.startswith('#'):
+            dl = map(str, line.split('|'))
+            errData[dl[0].strip()] = \
+            {'value':float(dl[1].strip()),\
+             'lower':float(dl[2].strip()),\
+             'upper':float(dl[3].strip()),\
+             'useSingle':String2Bool(dl[4].strip())}
+    
+    return errData
+
 def printErrors(MCMCfile,BestfitFile,OutputFile):
     """ Gets data out from the MCMC data file and the BESTFIT parameters file and prints uncertainties """
 
@@ -293,18 +347,24 @@ def printErrors(MCMCfile,BestfitFile,OutputFile):
             format(low15,BestFitParams[param]['printformat'])+'|'+\
             format(upp84,BestFitParams[param]['printformat'])+'|'+\
             str(useSingle)+'|:'
-
+        else:
+            if param.lower() != 'reffilt':
+                print >> OutFileObject, param+'|'+\
+                format(BestFitParams[param]['value'],BestFitParams[param]['printformat'])+'|'+\
+                format(float('nan'),BestFitParams[param]['printformat'])+'|'+\
+                format(float('nan'),BestFitParams[param]['printformat'])+'|'+\
+                str(True)+'|:'
     OutFileObject.close()
     
 def readDTfile(file,NuisONOFF):
     """
     read DT coefficients file.
     """
-    
+
     NuisanceData = ReadDetrendFile(NuisONOFF)
     fileObj = open(file,'r')
     fileLines = fileObj.readlines()
-    
+
     itag = 0
     TagList = []
     DTco = {}
@@ -343,7 +403,7 @@ def readDTfile(file,NuisONOFF):
             #print NuisanceData[tag]['dtparams'].keys()
             #print kvp
             DTco[istep-1].update({tag:dict(kvp)})
-             
+
     return DTco
 
 def generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
@@ -369,7 +429,32 @@ def generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
                 DTco[i].update({tag:DetrendedData[tag]['dtcoeff']})
         
     return DTco
-
+            
+def correctionFromMCMCBestFit(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+    """
+    Generate Correction functions from MCMCfile (make sure this is the cropped file)
+    Make Sure ModelParams is the bestfit
+    """
+    
+    exec "from myfunc import %s as ModelFunc" % FuncName
+    
+    DataMCMC = readMCMC(MCMCFile)
+    DTco = {}
+    for i in range(len(DataMCMC['istep'])):
+        DTco[i] = {}
+        for key in DataMCMC.keys():
+            if not isNonParam(key):
+                ModelParams[key]['value'] = DataMCMC[key][i]
+        
+        ModelData = ModelFunc(ModelParams,ObservedData)
+        DetrendedData = DetrendData(ObservedData,ModelData,NuisanceData,'',False)
+        
+        for tag in DetrendedData.keys():
+            if not tag.startswith('all'):
+                DTco[i].update({tag:DetrendedData[tag]['correction']})
+        
+    return DTco
+            
 def correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
     """
     Generate Correction functions from MCMCfile
@@ -446,5 +531,122 @@ def correctionFromDTfile(file,NuisONOFF):
             #print NuisanceData[tag]['dtparams'].keys()
             #print kvp
             DTco[istep-1].update({tag:Correction})
-             
+
     return DTco
+
+def WriteLowestChisqMedian(file,ModelParams,OutFileName,ShowOutput):
+    """ Finds the median in MCMC and prints to a file
+        of format similar to the start paramfile.
+        Inputs 
+            file - the MCMC file
+            ModelPars
+            OutFileName
+        Output
+            a file with OutFileName
+    """
+    
+    ModelParamsCopy = {}
+    
+    for key in ModelParams.keys():
+        if ModelParams[key]['open']:
+            if ShowOutput: print 'reading data for '+key
+            data = read1parMCMC(file,key)
+            ModelParamsCopy[key] = {'value':np.median(data[key]),\
+                                    'step':ModelParams[key]['step'],\
+                                    'printformat':ModelParams[key]['printformat'],\
+                                    'open':ModelParams[key]['open']}
+        else:
+            ModelParamsCopy[key] = {'value':ModelParams[key]['value'],\
+                                    'step':ModelParams[key]['step'],\
+                                    'printformat':ModelParams[key]['printformat'],\
+                                    'open':ModelParams[key]['open']}
+    PrintModelParams(ModelParamsCopy,OutFileName)
+                
+def getEffAllAutoCorStat(fileName):
+    """ read all the AutoCorStatistics """
+    
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+
+    AcorStat = {}
+    ParData = []
+    for line in FileObject:
+        if line.startswith('##'):
+            Split1 = map(str, line.split('##'))
+            par = Split1[1].strip()
+            Split2 = map(str, Split1[2].split('='))
+            if par.lower() == 'all' and Split2[0].strip().startswith('Eff'):
+                Eff = long(Split2[1])
+            else:
+                AcorStat[par] = {'Corr':None,'Eff':None}
+                if Split2[0].strip().startswith('Corr'):
+                    Corr = long(Split2[1])
+                    ParData.append((par,'Corr',Corr))
+                elif Split2[0].strip().startswith('Eff'):
+                    Eff = long(Split2[1])
+                    ParData.append((par,'Eff',Eff))
+                else:
+                    pass
+
+    for el in ParData:
+        AcorStat[el[0]][el[1]] = el[2]
+
+    return AcorStat
+
+
+def getEffAutoCorStatFile(fileName):
+    """ read the AutoCorStatistics """
+
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+
+    ParList = []
+    EffList = []
+    Eff = None
+    for line in FileObject:
+        if line.startswith('##'):
+            Split1 = map(str, line.split('##'))
+            par = Split1[1].strip()
+            Split2 = map(str, Split1[2].split('='))
+            if par.lower() == 'all' and Split2[0].strip().startswith('Eff'):
+                Eff = long(Split2[1])
+            else:
+                if Split2[0].strip().startswith('Eff'):
+                    ParList.append(par)
+                    EffList.append(long(Split2[1]))
+
+    EffList = np.array(EffList)
+    return ParList[EffList.argmin()], min(EffList)
+
+def getAllChainStats(fileName):
+    """ read the AutoCorStatistics """
+
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+
+    for line in FileObject:
+        if line.startswith('##'):
+            Split1 = map(str, line.split('##'))
+            par = Split1[1].strip()
+            Split2 = map(str, Split1[2].split('='))
+            if par.lower() == 'all' and Split2[0].strip().startswith('Chain'):
+                ChainLength = long(Split2[1])
+            if par.lower() == 'all' and Split2[0].strip().startswith('Eff'):
+                Eff = long(Split2[1])
+            if par.lower() == 'all' and Split2[0].strip().startswith('Corr'):
+                Corr = long(Split2[1])
+
+    return ChainLength, Corr, Eff
+            
+def readGRStat(fileName):
+    """ read GR Stat file """
+    
+    FileObject = open(fileName,'r')
+    FileObject = FileObject.readlines()
+    OutDict = {}
+    for line in FileObject:
+        if not line.startswith('#'):
+            LineSplit = map(str, line.split('='))
+            OutDict[LineSplit[0].strip()] = LineSplit[1].strip()
+    
+    return OutDict

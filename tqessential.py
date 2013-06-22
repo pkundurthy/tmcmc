@@ -3,7 +3,8 @@
 import numpy as np
 import os
 import sys
-from matplotlib import pylab as plt
+np.seterr(divide='ignore')
+#import pylab as plt
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
@@ -199,7 +200,7 @@ def occultquad(z,u1,u2,p0):
             # lambda_4
             lambdad[ndxuse] = 1./3.+2./9./np.pi*(4.*(2.*p**2-1.)*Ek+(1.-4.*p**2)*Kk)
             # eta_2
-            etad[ndxuse] = p**2/2.*(p**2+2.*z[ndxuse]**2)        
+            etad[ndxuse] = p**2/2.*(p**2+2.*z[ndxuse]**2)
             lambdae[ndxuse] = p**2 # uniform disk
         elif p > 0.5:
             # Case 7
@@ -307,6 +308,7 @@ def newtraph6(x,a5,a4,a0):
     f['f'] = 1e0
     f['df'] = 1e0
     while abs(f['f']/f['df']) > tol:
+        #print f['f'],f['df'],abs(f['f']/f['df']),x
         f = tqsextic(x,a5,a4,a0)
         x = x - f['f']/f['df']
 
@@ -315,22 +317,135 @@ def newtraph6(x,a5,a4,a0):
 def tqsextic(x,a5,a4,a0):
     """ Computes a sextic and its first derivative.
     This is specific to the computeRpRs function.
+    x = (Rp/Rstar)^(1/2)
     """
 
     out = {}
     out['f'] = x**6 + a5*(x**5) + a4*(x**4) + a0
     out['df'] = 6e0*(x**5) + 5e0*a5*(x**4) + 4e0*a4*(x**3)
-    return out 
+    return out
+
+def checkRealRoots(a5,a4,a0):
+    """ check for real roots of tqsextic in the range
+        between 0 and 1 (the reasonable range for x) 
+        where x = np.sqrt(Rp/Rs)
+        
+        Based on Strum theorem
+    """
+    
+    x = 1e-6
+    f_S = tqsextic(x,a5,a4,a0)
+    f6_S = f_S['f']
+    f5_S = f_S['df']
+    f4_S = strum_tqsextic_f4(x,a5,a4,a0)
+    f3_S = strum_tqsextic_f3(x,a5,a4,a0)
+    f2_S = strum_tqsextic_f2(x,a5,a4,a0)
+    f1_S = strum_tqsextic_f1(x,a5,a4,a0)
+    f0_S = strum_tqsextic_f0(a5,a4,a0)
+    
+    YS = [f6_S,f5_S,f4_S,f3_S,f2_S,f1_S,f0_S]
+
+    x = 1e0
+    f_E = tqsextic(x,a5,a4,a0)
+    f6_E = f_E['f']
+    f5_E = f_E['df']
+    f4_E = strum_tqsextic_f4(x,a5,a4,a0)
+    f3_E = strum_tqsextic_f3(x,a5,a4,a0)
+    f2_E = strum_tqsextic_f2(x,a5,a4,a0)
+    f1_E = strum_tqsextic_f1(x,a5,a4,a0)
+    f0_E = strum_tqsextic_f0(a5,a4,a0)
+    
+    YE = [f6_E,f5_E,f4_E,f3_E,f2_E,f1_E,f0_E]
+
+    NS = NsignChange(YS)
+    NE = NsignChange(YE)
+    
+    Nreal = np.abs(NS - NE)
+    
+    return Nreal
+
+def NsignChange(List):
+    
+    idzeros = np.where( np.array(List) == 0)[0]
+    if len(idzeros) > 0:
+        List[idzeros] = 1
+    Nsign = 0
+    for i in range(len(List)-1):
+        if cmp(List[i],0) != cmp(List[i+1],0):
+            Nsign += 1
+            
+    return Nsign
+
+def strum_tqsextic_f4(x,a5,a4,a0):
+    """         """
+
+    out = a0 + ((x**3)/36e0)*(-4e0*a4*(a5 - 3e0*x) - 5e0*(a5**2)*x)
+    return out
+    
+def strum_tqsextic_f3(x,a5,a4,a0):
+    """         """
+    
+    out = (36e0*(4e0*(a4**2)*(4e0*a4 - (a5**2))*(x**3) + \
+            a0*(5e0*(a5**2)*(5e0*a5 + 6e0*x) - 12e0*a4*(7e0*a5 + \
+            6e0*x))))/(12e0*a4 - 5e0*(a5**2))**2
+    return out
+
+def strum_tqsextic_f2(x,a5,a4,a0):
+    """         """
+    
+    out = (a0*((12e0*a4 - 5e0*(a5**2))**2)*(4e0*a4 + \
+           x*(5e0*a5 + 6e0*x)))/(144e0*(a4**2)*(4e0*a4 - \
+           (a5**2)))
+
+    return out
+
+def strum_tqsextic_f1(x,a5,a4,a0):
+    """         """
+    
+    out = (4e0*( (-1e0*(a4**2))*(4e0*a4 - \
+          (a5**2))*(4e0*a4*(5e0*a5 - 6e0*x) + 25e0*(a5**2)*x) + \
+           9e0*a0*(-5e0*(a5**2)*(5e0*a5 + 6e0*x) + 12e0*a4*(7e0*a5 + 6e0*x))))\
+           /(12e0*a4 - 5e0*(a5**2))**2
+           
+    return out
+
+def strum_tqsextic_f0(a5,a4,a0):
+    """         """
+
+    out = (a0*((12e0*a4 - 5e0*(a5**2))**2)*(46656e0*(a0**2) + \
+           256e0*(a4**5)*(4e0*a4 - (a5**2)) + a0*(13824e0*(a4**3) - \
+           43200e0*(a4**2)*(a5**2) + 22500e0*a4*(a5**4) - \
+           3125e0*(a5**6))))/(16e0*(54e0*a0*(12e0*a4 - 5e0*(a5**2)) + \
+          (a4**2)*(96e0*(a4**2) - 124e0*a4*(a5**2) + 25e0*(a5**4)))**2)
+
+    return out
+
+def disc_tqsextic(a5,a4,a0):
+    """         """
+    
+    disc = -1e0*(a0**3)*(46656e0*(a0**2) + 13824e0*(a0*(a4**3)) +\
+            1024e0*(a4**6) - 43200e0*(a0*(a4**2)*(a5**2)) -\
+            256e0*((a4**5)*(a5**2)) + 22500e0*(a0*a4*(a5**4)) - \
+            3125e0*(a0*(a5**6)))
+    
+    return disc
 
 def computeRpRs(u1,u2,tT,tG,D):
     """ computea the planet-to-star radius ratio given 
     u1, u2, tT, tG, and the transit depth.
     """
     
-    a5 = -1.0e0*(u1+2.0e0*u2)/(u2*np.sqrt(tT/tG))
-    a4 = -1.0e0*(1.0e0-u1-u2)/(u2*tT/tG)
-    a0 = D*(1e0-u1/3e0-u2/6e0)/(u2*tT/tG)
-    RpRs = (newtraph6(0.3,a5,a4,a0))**2e0
+    if not u2 == 0e0:
+        a5 = -1.0e0*(u1+2.0e0*u2)/(u2*np.sqrt(tT/tG))
+        a4 = -1.0e0*(1.0e0-u1-u2)/(u2*tT/tG)
+        a0 = D*(1e0-u1/3e0-u2/6e0)/(u2*tT/tG)
+        NRealRoots = checkRealRoots(a5,a4,a0)
+        if NRealRoots > 0.0: 
+            RpRs = (newtraph6(0.3,a5,a4,a0))**2e0
+        else:
+            RpRs = float('inf')
+    else:
+        RpRs = float('inf')
 
     return RpRs
 
@@ -404,14 +519,14 @@ def computePeriod(ModelParams):
         print 'ERROR: add at least one more transit time so that ephemeris may be computed'
         Period = 0
         sys.exit()
-        
+
     return Period
 
 def TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
     """
         Computes transit lightcurve.
     """
-    
+
     # RpRs = tqe.MTQ_getRpRs(u1,u2,tT,tG,D)
     th = (2e0*np.pi/Period)*(timeIn-T0)
     #z0 = aRs*np.sqrt( np.cos(inc)**2 + (th**2)*np.sin(inc)**2)
@@ -421,7 +536,7 @@ def TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
     return flux
 
 def slopefitquick(x,y):
-    """ Computes the best-fit slope only, given x and y data. Used for computing the ephemeris within the MultiTransitquick """
+    """ Computes the best-fit slope only, given x and y data. Used for computing the ephemeris within MultiTransitquick """
 
     x = np.array(x)
     y = np.array(y)

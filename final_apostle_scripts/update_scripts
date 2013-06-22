@@ -1,0 +1,3 @@
+#!/bin/csh
+
+rsync -avz /astro/store/student-scratch1/pkundurthy/final_apostle/*.py .

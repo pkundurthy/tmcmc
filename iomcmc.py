@@ -1,6 +1,7 @@
 
 from tmcmc.misc import String2IntFloat
 from tmcmc.misc import String2Bool
+
 import os, sys
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
@@ -237,6 +238,10 @@ def ReadDetrendFile(file):
                         else:
                             parameters[var_name[i]] = {'used':flags[i],'data':data_detrend[:][i]}
                 detrend_out[TransitTag] = {'filename':NuisanceFile,'dtparams':parameters}
+            else:
+                print 'tags do not match var_name'
+                print len(flags), len(var_name)
+                print flags, var_name
 
     detrend_out['GlobalSwitch'] = atLeastOneTrue
     return detrend_out

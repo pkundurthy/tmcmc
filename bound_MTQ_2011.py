@@ -33,6 +33,38 @@ def bound_v1plusv2_2011(ModelParams):
                 bound = False
     return bound
 
+            
+def bound_vvalues_2011(ModelParams):
+    """ checks if u values are within bounds between 0 and 1 """
+
+    bound = True
+    Tags = tqe.getTags(ModelParams)
+    for par in ModelParams.keys():
+        if par.startswith('D.'):
+            parstrip = par.strip('D.')
+            # gets D, v1, and v2 for a given filter
+            D, v1, v2 = MTQ_FilterParams(parstrip,Tags,ModelParams)
+            if v1 <= 0 or v1 > 1 or v2 <= 0 or v2 > 1:
+                bound = False
+
+    return bound
+
+def bound_uvalues_2011(ModelParams):
+    """ checks if u values are within bounds between 0 and 1 """
+
+    bound = True
+    Tags = tqe.getTags(ModelParams)
+    for par in ModelParams.keys():
+        if par.startswith('D.'):
+            parstrip = par.strip('D.')
+            # gets D, v1, and v2 for a given filter
+            D, v1, v2 = MTQ_FilterParams(parstrip,Tags,ModelParams)
+            u1, u2 = tqe.LDC_v2u(v1,v2)
+            if u1 <= 0 or u1 > 1 or u2 <= 0 or u2 > 1:
+                bound = False
+    
+    return bound
+
 def bound_D_2011(ModelParams):
     """ checks if D > 0 """
 
@@ -80,7 +112,7 @@ def bound_vfraction_MTQ_2011(ModelParams):
                 # gets D, v1, and v2 for a given filter
                 D, v1, v2 = MTQ_FilterParams(parstrip,Tags,ModelParams)
                 u1, u2 = tqe.LDC_v2u(v1,v2)
-                RpRs.append((tqe.computeRpRs(u1,u2,tT,tG,D))**2)
+                RpRs.append((tqe.computeRpRs(u1,u2,tT,tG,D)))
             for el in RpRs:
                 vfraction = el/(tT*tG)
                 if vfraction < 0:
@@ -105,9 +137,15 @@ def bound_bfraction_MTQ_2011(ModelParams):
                 parstrip = par.strip('D.')
                 D, v1, v2 = MTQ_FilterParams(parstrip,Tags,ModelParams)
                 u1, u2 = tqe.LDC_v2u(v1,v2)
+                #print 'here 1'
+                #print  tT, tG, v1, v2, D, par, ModelParams[par]['value']
                 RpRs.append((tqe.computeRpRs(u1,u2,tT,tG,D)))
+                #print 'here 2'
         for el in RpRs:
-            bfraction = 1e0 - np.sqrt(el*(tT/tG))
+            if np.isinf(el):
+                bfraction = -99e0
+            else:
+                bfraction = 1e0 - np.sqrt(el*(tT/tG))
             if bfraction < 0:
                 bound = False
 
@@ -117,7 +155,7 @@ def bound_bOVERaRs_MTQ_2011(ModelParams):
     """ checks if b/aRs <= 1 """
     
     tT = ModelParams['tT']['value']
-    tG = ModelParams['tT']['value']
+    tG = ModelParams['tG']['value']
     Period = tqe.computePeriod(ModelParams)
     
     Tags = {}

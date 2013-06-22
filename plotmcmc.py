@@ -12,7 +12,7 @@ rc('text',usetex=True)
 rc('font',family='serif')
 import matplotlib.colors
 from matplotlib import pyplot as plt
-from matplotlib.ticker import FormatStrFormatter,MaxNLocator
+from matplotlib.ticker import FormatStrFormatter,MaxNLocator, FixedLocator
 from matplotlib.font_manager import fontManager, FontProperties
 #from matplotlib.gridspec import GridSpec
 
@@ -37,7 +37,7 @@ def return1Dfrom2D(arr2D):
     return arr1D
 
 def singleJC(data1,data2):
-    """ make a single Joint-Correlation plot 
+    """ make a single Joint-Correlation plot
     from single parameter dictionaries """
     
     new_data = {}
@@ -57,8 +57,13 @@ def JC(par1,par2,dataMCMC):
     
     x = np.array(dataMCMC[par1])
     y = np.array(dataMCMC[par2])
+    mm1, sdv1, ngood1, goodindex1, badindex1 = \
+    MedianMeanOutlierRejection(x,5,'median')
+    x = x[goodindex1]
+    y = y[goodindex1]
 
-    sigma_arr = np.array([1e0,2e0,3e0,4e0,5e0])
+    #sigma_arr = np.array([1e0,2e0,3e0,4e0,5e0])
+    sigma_arr = np.array([1e0,3e0,5e0])
     levels = scipy.special.erf(sigma_arr/np.sqrt(2e0))
     
     hist2D,xedge,yedge = np.histogram2d(x,y,bins=25)
@@ -94,8 +99,10 @@ def JC(par1,par2,dataMCMC):
     xarr = rangeMidpoints(x1)
     yarr = rangeMidpoints(y1)
     
-    cmap = matplotlib.colors.Colormap('jet',N=5)
-    sig_labels = (r'1-$\sigma$',r'2-$\sigma$',r'3-$\sigma$',r'4-$\sigma$',r'5-$\sigma$')
+    #cmap = matplotlib.colors.Colormap('jet',N=5)
+    cmap = matplotlib.colors.Colormap('jet',N=3)
+    #sig_labels = (r'1-$\sigma$',r'2-$\sigma$',r'3-$\sigma$',r'4-$\sigma$',r'5-$\sigma$')
+    sig_labels = (r'1-$\sigma$',r'3-$\sigma$',r'5-$\sigma$')
     sig_labels = sig_labels[::-1]
     clevel = {}
     newlev = []
@@ -107,8 +114,9 @@ def JC(par1,par2,dataMCMC):
     clevel[0] = ''
     #newlevalt = newlev.copy()
     newlev.append(0)
-    colortup = ('#FF6600','#FF9900','#FFCC00','#FFFF00','#FFFF99')
-    smooth2D = scipy.ndimage.filters.median_filter(hist2D,size=3)
+    #colortup = ('#FF6600','#FF9900','#FFCC00','#FFFF00','#FFFF99')
+    colortup = ('#FF6600','#FFCC00','#FFFF99')
+    smooth2D = hist2D #scipy.ndimage.filters.median_filter(hist2D,size=3)
     #extent = [yedge[0],yedge[-1],xedge[-1],xedge[0]]
     CSV = plt.contourf(xarr,yarr,smooth2D,levels=newlev,colors=colortup)
     CS = plt.contour(xarr,yarr,smooth2D,levels=newlev[:-1],colors='k')
@@ -155,10 +163,8 @@ def subID(Coord,Nx,Ny):
     
     x = Coord[0]
     y = Coord[1]
-    TotalPlots = Nx*Ny
-    flipx = x
-    flipy = Ny-1-y
-    plotID = flipy*Nx+(flipx+1)
+    
+    plotID = (x+1) + (Ny-1-y)*Nx
     
     return plotID
 
@@ -180,19 +186,22 @@ def SimplifyGrid(xp,yp):
     #yp = sorted(yp)
     GridDict = {}
     for ix in xpD.keys():
+    #for ix in range(len(xp)):
         go = True
+        #for iy in range(len(yp)):
         for iy in ypD.keys():
             if xpD[ix] == ypD[iy]:
                 go = False
             if go:
+                #print ix,iy, xpD[ix], ypD[iy]
                 GridDict[(ix,iy)] = (xpD[ix],ypD[iy])
 
     return GridDict
-    
+
 class triplot:
 
-    def __init__(self,GridDict,MCMCFile,xp,yp):
-        
+    def __init__(self,GridDict,MCMCFileList,xp,yp):
+
         maxY = 0
         maxX = 0
         for Grid in GridDict.keys():
@@ -200,10 +209,9 @@ class triplot:
                 maxX = Grid[0]
             if Grid[1] > maxY:
                 maxY = Grid[1]
-            
+
         self.GridNX = maxX+1
         self.GridNY = maxY+1
-        
         parList = []
         for ix in range(self.GridNX):
             for iy in range(self.GridNY):
@@ -215,7 +223,10 @@ class triplot:
 
         self.parList = list(set(parList))
         self.GridDict = GridDict
-        self.DataFile = MCMCFile
+        if type(MCMCFileList) is list:
+            self.DataFile = MCMCFileList
+        else:
+            self.DataFile = [MCMCFileList]
         self.xpars = xp
         self.ypars = yp
         self.parDict = {}
@@ -224,9 +235,9 @@ class triplot:
                                  'axForm':None,\
                                  'axisTicks':None,\
                                  'axisRange':None}
- 
+
     def addFits(self,Label,params,**kwargs):
-        
+
         mkt = 'o'
         mkc = 'r'
         UseErr = False
@@ -234,7 +245,7 @@ class triplot:
             dummy = self.Fits
         except:
             self.Fits = {}
-        
+
         for key in kwargs:
             if key.lower().startswith('markertype'):
                 mkt = kwargs[key]
@@ -244,38 +255,42 @@ class triplot:
                 UseErr = kwargs[key]
             else:
                 pass
-        
+
         self.Fits[Label] = {'dict':params,\
                             'mkt':mkt,\
                             'mkc':mkc,\
                             'UseErr':UseErr}
-    
+
     def generateAxisText(self,**kwargs):
-        
+
         for key in kwargs:
             if key.lower() == 'parformat':
                 for par in self.parList:
                     self.parDict[par].update(kwargs[key][par])
             else:
                 pass
-                    
+
     def generateAxisProperties(self,**kwargs):
-        
+
         for key in kwargs:
             if key.lower() == 'axisform':
                 for par in self.parList:
                     self.parDict[par].update(kwargs[key][par])
             else:
                 pass
-                     
+
     def initPlots(self,**kwargs):
-        
+
         UseHist = False
         hbins = 25
         DataDict = {}
         for par in self.parList:
-            DataDict[par] = read1parMCMC(self.DataFile,par)[par]
-            
+            for dFile in self.DataFile:
+                try:
+                    DataDict[par] = read1parMCMC(dFile,par)[par]
+                except:
+                    pass
+
         for key in kwargs:
             if key.lower() == 'hist':
                 UseHist = kwargs[key]
@@ -283,15 +298,15 @@ class triplot:
                 hbins = long(kwargs[key])
             if key.lower() == 'data':
                 DataDict = kwargs[key]
-                        
+
         self.hbins = hbins
         self.UseHist = UseHist
         self.DataDict = DataDict
-        
+
         if self.UseHist:
             self.GridNX += 1
             self.GridNY += 1
-            
+
         HistDict = {}
         for par in self.parList:
             ix = None
@@ -316,11 +331,20 @@ class triplot:
                 HistDict[(ix,iy)] = (par,Or)
             else:
                 HistDict[(ix,iy)] = None
-        
+
         self.HistDict = HistDict
-            
-    def makePlot(self, **kwargs):
+
+    def addTitle(self,x,y, TitleString):
         
+        self.xTitleStr = x
+        self.yTitleStr = y
+        self.TitleString = TitleString
+        
+    def addWarning(self,WarningString):
+        self.WarningString = WarningString 
+
+    def makePlot(self, **kwargs):
+
         PlotFile = False
         fSzX = 16
         fSzY = 16
@@ -339,6 +363,17 @@ class triplot:
             if key.lower().startswith('legloc'):
                 loctup = kwargs[key]
 
+        width, height = matplotlib.rcParams['figure.figsize']
+        size = min( [width,height])
+        # make a square figure
+        fig = plt.figure(figsize=(size,size))
+
+        leglab = {}
+        legFontSz = 12
+        if len(self.Fits.keys()) > 2: 
+            legFontSz = 10
+
+        LegFont = FontProperties(size=legFontSz)
         for Grid in self.GridDict.keys():
             LegMade = False
             if self.GridDict[Grid] != None:
@@ -351,23 +386,42 @@ class triplot:
                 singleJC(d_x,d_y)
                 #plot Fits if added:
                 if hasattr(self,'Fits'):
-                    leglab = []
-                    LegFont = FontProperties(size=16)
                     for key in self.Fits.keys():
-                        xarr = [-9e3,self.Fits[key]['dict'][par_x]['value']]
-                        yarr = [-9e3,self.Fits[key]['dict'][par_y]['value']]
-                        xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
-                        yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
-                        mkt = self.Fits[key]['mkt']
-                        mkc = self.Fits[key]['mkc']
-                        plt.plot(xarr,yarr,mkt+mkc)
-                        if self.Fits[key]['UseErr']:
-                            plt.errorbar(xarr,yarr,xerr=xerrArr,\
-                                         yerr=yerrArr,fmt=None,\
-                                         marker=None)
-                        if not LegMade:
-                            leglab.append(key)
-                    LegMade = True
+                        parXExists = False
+                        parYExists = False
+                        if par_x in self.Fits[key]['dict'].keys():
+                            parXExists = True
+                            xarr = [-9e3,self.Fits[key]['dict'][par_x]['value']]
+                        if par_y in self.Fits[key]['dict'].keys():
+                            parYExists = True
+                            yarr = [-9e3,self.Fits[key]['dict'][par_y]['value']]
+
+                        if parXExists and parYExists:
+                            if isinstance(self.Fits[key]['dict'][par_x]['step'],list):
+                                xerrArr0 = [0,self.Fits[key]['dict'][par_x]['step'][0]]
+                                xerrArr1 = [0,self.Fits[key]['dict'][par_x]['step'][1]]
+                                yerrArr0 = [0,self.Fits[key]['dict'][par_y]['step'][0]]
+                                yerrArr1 = [0,self.Fits[key]['dict'][par_y]['step'][1]]
+                                xerrArr = [xerrArr0,xerrArr1]
+                                yerrArr = [yerrArr0,yerrArr1]
+                                #print xerrArr
+                                #print yerrArr
+                            else:
+                                xerrArr = [0,self.Fits[key]['dict'][par_x]['step']]
+                                yerrArr = [0,self.Fits[key]['dict'][par_y]['step']]
+
+                            mkt = self.Fits[key]['mkt']
+                            mkc = self.Fits[key]['mkc']
+                            #print key, self.Fits.keys(), par_x, par_y, leglab
+                            mark = plt.plot(xarr,yarr,marker=mkt,markerfacecolor=mkc,linestyle='None')
+                            if self.Fits[key]['UseErr']:
+                                plt.errorbar(xarr,yarr,xerr=xerrArr,\
+                                            yerr=yerrArr,fmt=None,\
+                                            marker=mkt,ecolor=mkc)
+                            if not LegMade:
+                                leglab[key] = mark
+                                #leglab.append(key)
+                                #legmark.append(mark)
 
                 #Axis Formatting
                 plt.xlim(self.parDict[par_x]['axisRange'])
@@ -396,7 +450,8 @@ class triplot:
         if hasattr(self,'Fits'):
             plotID = subID((0,0),self.GridNX,self.GridNY)
             plt.subplot(self.GridNX,self.GridNY,plotID)
-            plt.legend(tuple(leglab),\
+            plt.legend(tuple(leglab.values()),\
+                       tuple(leglab.keys()),\
                        numpoints=1,\
                        loc='upper left',\
                        prop=LegFont,\
@@ -410,8 +465,10 @@ class triplot:
                     ori = self.HistDict[Grid][1]
                     d = {par:self.DataDict[par]}
                     plotID = subID(Grid,self.GridNX,self.GridNY)
+                    #print plotID, Grid
                     plt.subplot(self.GridNX,self.GridNY,plotID)
-                    plt.hist(d[par],bins=self.hbins,orientation=ori)
+                    plt.hist(d[par],bins=self.hbins,orientation=ori,\
+                             histtype='step',color='black')
                     tickForm = FormatStrFormatter('%.2e')
                     if ori.startswith('vert'):
                         plt.setp(plt.gca(),xticklabels=[])
@@ -445,8 +502,143 @@ class triplot:
 
         plt.subplots_adjust(hspace=0)
         plt.subplots_adjust(wspace=0)
-        
+
+        if hasattr(self, 'TitleString'):
+            print self.TitleString, size
+            plt.figtext(self.xTitleStr,\
+                        self.yTitleStr,self.TitleString,\
+                        fontsize=fSzY)
+        if hasattr(self, 'WarningString'):
+            fdict = {'family' : 'monospace','color':'b'}
+            plt.figtext(0.5,0.5,self.WarningString,fontsize=24,rotation=45, **fdict)
+
         if PlotFile:
-            plt.savefig(FileName)
+            plt.savefig(FileName,bbox_inches='tight',pad_inches=0.5)
+            #plt.savefig(FileName,bbox_inches='tight')
+            #plt.savefig(FileName,pad_inches=0.5)
+        else:
+            plt.show()
+
+class statTriplot:
+    
+    def __init__(self, xpars,ypars):
+        
+        self.xp = xpars
+        self.yp = ypars
+        
+        self.GridDict = SimplifyGrid(self.xp,self.yp)
+        #for key in self.GridDict.keys():
+            #print key, self.GridDict[key]
+        
+        maxX = 0
+        maxY = 0
+        for Grid in self.GridDict.keys():
+            if Grid[0] > maxX:
+                maxX = Grid[0]
+            if Grid[1] > maxY:
+                maxY = Grid[1]
+
+        self.GridNX = maxX+1
+        self.GridNY = maxY+1
+
+    def parText(self,parLabel):
+
+        Label = {}
+        for grid in self.GridDict.keys():
+            Label[grid] = {'x':parLabel[self.GridDict[grid][0]]['label'],\
+                           'y':parLabel[self.GridDict[grid][1]]['label']}
+
+        self.Label = Label
+
+    def statsTable(self,Stats,stype, **kwargs):
+
+        width, height = matplotlib.rcParams['figure.figsize']
+        size = max([width,height])
+        # make a square figure
+        fig = plt.figure(figsize=(size,size))
+
+        # default font sizes
+        xfsize = np.floor(300e0*size/(24*max(self.GridNX,self.GridNY)))
+        yfsize = np.floor(300e0*size/(24*max(self.GridNX,self.GridNY)))
+        fsize = np.floor(300e0*size/(24*max(self.GridNX,self.GridNY)))
+        yshift = 0
+        xshift = 0
+        PlotFile = False
+        TitleString = ''
+        #print xfsize,yfsize,fsize
+        if fsize > 24.0:
+            fsize = 24.0
+        if xfsize > 18.0:
+            xfsize = 18.0
+        if yfsize > 18.0:
+            yfsize = 18.0
+            
+        for key in kwargs:
+            if key.lower().startswith('plotfile'):
+                PlotFile = True
+                FileName = kwargs[key]
+            elif key.lower().startswith('numfsize'):
+                fsize = kwargs[key]
+            elif key.lower().startswith('fsizex'):
+                xfsize = kwargs[key]
+            elif key.lower().startswith('fsizey'):
+                yfsize = kwargs[key]
+            elif key.lower().startswith('xshift'):
+                xshift = kwargs[key]
+            elif key.lower().startswith('yshift'):
+                yshift = kwargs[key]
+            elif key.lower().startswith('title'):
+                TitleString = kwargs[key]
+            else:
+                pass
+
+        for grid in self.GridDict.keys():
+            plotID = subID(grid,self.GridNX,self.GridNY)
+            plt.subplot(self.GridNY,self.GridNX,plotID)
+
+            Stat = Stats[stype]\
+                        [self.GridDict[grid][0]]\
+                        [self.GridDict[grid][1]]\
+                        ['value']
+
+            absStat = abs(Stat)
+
+            cross = np.linspace(0,1,3)
+            plt.plot(cross,cross,marker='o',\
+                     markerfacecolor='w',\
+                     markeredgecolor='w',\
+                     linestyle='None')
+            #numsplit = map(str,text.split('e'))
+            #OutText = r'%s$\times 10^{%s}$' % (numsplit[0],numsplit[1])
+            if absStat < 0.01:
+                text = r'$< 0.01$'
+                OutText = r'%s' % text
+                plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize)
+            elif absStat >= 0.5:
+                text = format(abs(Stat),'0.2f')
+                plt.subplot(self.GridNY,self.GridNX,plotID, axisbg='gray')
+                OutText = r'%s' % text
+                plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize,color='w')
+            else:
+                text = format(abs(Stat),'0.2f')
+                plt.subplot(self.GridNY,self.GridNX,plotID)
+                OutText = r'%s' % text
+                plt.text(0.0-xshift,0.4-yshift,OutText,fontsize=fsize)
+
+            plt.setp(plt.gca(),yticklabels=[],yticks=[])
+            plt.setp(plt.gca(),xticklabels=[],xticks=[])
+            if grid[1] == 0:
+                #print self.Label[grid]['x'], grid
+                plt.xlabel(self.Label[grid]['x'],fontsize=xfsize)
+            if grid[0] == 0:
+                #print self.Label[grid]['y'], grid
+                plt.ylabel(self.Label[grid]['y'],fontsize=yfsize)
+            
+        plt.subplots_adjust(hspace=0)
+        plt.subplots_adjust(wspace=0)
+        plt.suptitle(TitleString,fontsize=24,y=0.95)
+
+        if PlotFile:
+            plt.savefig(FileName,pad_inches=0.5)
         else:
             plt.show()
