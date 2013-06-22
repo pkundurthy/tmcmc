@@ -1,10 +1,12 @@
-#!/astro/apps/pkg/python64/bin/python
+#!/Library/Frameworks/EPD64.framework/Versions/Current/bin/python
 
 import time, os
 def readFunc():
     """ Lists all functions """
     
     HEADER = \
+    " Transit Markov Chain Monte Carlo \n"+\
+    " used by the APOSTLE program at the University of Washington, Seattle"
     " Last Updated: "+\
     time.strftime("%Y-%b-%d %H:%M:%S", time.localtime())+"\n"
     

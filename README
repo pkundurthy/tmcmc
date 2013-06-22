@@ -1,138 +1,5 @@
- Last Updated: 2011-Nov-03 00:20:36
-
-
-+ myderivedfunc.py
-
-+ myfunc.py
-
-+ postmcmc.py
-     covcorStats(File, FileTag):
-     plotTrace(File1,File2, **keywords):
-     autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
-
-+ MTQ_2010.py
-     MultiTransitQuick_circular_rprs_vm(ModelParams,ObservedData):
-     MultiTransitQuick_circular_depth_vm(ModelParams,ObservedData):
-     transitquick_circ_depth(t,p):
-     transitquick_circ_rprs(t,p):
-
-+ MTQ_2011.py
-     MTQ_multidepth_tduration(ModelParams,ObservedData):
-     MTQ_getDerivedParams(D,tT,tG,u1,u2,Period):
-     MTQ_FilterParams(RefFilt,Tags,ModelParams):
-
-+ mcmc.py
-     MakeMCMCheader(ModelParams):
-     printMCMCline(param_tagorder,ModelParams,istep,frac,acr,chi1,chi2):
-     chisq(fobs,sig,fmodel):
-     fn_randG(mu,sig):
-     fn_randU(lower,upper):
-     AdaptiveMultiplierCheck(ModelParams):
-     StepperFunction(ModelParams,frac):
-     mcmc_mh_adapt(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,OutFile,ShowOutput):
-     mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFunctionName,DerivedFile,ShowOutput):
-     getDTCOEFFlines(DetrendData):
-     DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
-     LinearLeastSq_coeff(A,B):
-     ApplyBounds(ModelParams,BoundParams):
-
-+ derived_MTQ_2011.py
-     returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
-     printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
-     filterMatchD(TransitTag,Tags,ModelParams):
-
-+ misc.py
-     String2Bool(inStr):
-     String2IntFloat(inStr):
-     format(str, form):
-
-+ iomcmc.py
-     MakeModelParsContinue(par0,par1,ModelPars):
-     ReadStartParams(filename):
-     ReadSingleDataFile(file):
-     ReadDataFile(file):
-     ReadMultiList(listfile):
-     ReadColFloat(file,separator,comment):
-     checkFileExists(file):
-     ReadDetrendFile(file):
-     ReadBoundsFile(file):
-     ReadHeaderMCMC(line):
-     ReadMCMCline(line,header):
-     WriteLowestChisq(file,ModelParams,OutFileName,ShowOutput):
-     CheckContinue(file,ModelPars):
-     ReadMCMCheader(OutFile):
-     PrintModelParams(ModelParams,OutFile):
-     ReadBoundFile(file):
-
-+ myboundfunc.py
-
-+ myplotfunc.py
-
-+ iobinning.py
-     ReadData(file):
-     WriteLightCurveFile(OutFileName,file,IngressTime,EgressTime):
-     WriteNuisanceFile(OutFileName,file):
-     WriteLCNUSoutlierRejection(OutFileTag,file,IngressTime,EgressTime):
-
-+ plotTransit.py
-     returnTsub(TSTAMP):
-     TForm(parName):
-     TransitParFormat(parlist):
-     TData(d,parName,par1):
-     PrepTransitData(DataFile,parlist,BestFitPar):
-     robust1sigma(x):
-     makeStatLabels(Stats,DataFile):
-
-+ func_example.py
-     quad(ModelParams,ObservedData):
-
-+ runminuit.py
-     RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
-     f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams):
-
-+ iopostmcmc.py
-     readStatHeaders(FileName):
-     readStatsFile(FileName):
-     readALLStats(**kwargs):
-     isNonParam(key):
-     getNparams(hdrkeys):
-     readMCMChdr(filename):
-     getPars(filename):
-     readMCMC(filename):
-     read1parMCMC(filename,parname):
-     cropMCMC(mcmcfile,outfile,cropperc):
-     makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):
-     printErrors(MCMCfile,BestfitFile,OutputFile):
-     readDTfile(file,NuisONOFF):
-     generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
-     correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
-     correctionFromDTfile(file,NuisONOFF):
-
-+ tqessential.py
-     ekepler(m,e):
-     kepler(m,e):
-     ellke(k):
-     ellpic_bulirsch(n,k):
-     occultquad(z,u1,u2,p0):
-     newtraph6(x,a5,a4,a0):
-     tqsextic(x,a5,a4,a0):
-     computeRpRs(u1,u2,tT,tG,D):
-     LDC_v2u(v1,v2):
-     getFilterTags(StringArray):
-     getTags(ModelParams):
-     computePeriod(ModelParams):
-     TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
-     slopefitquick(x,y):
-
-+ plotmcmc.py
-     rangeMidpoints(x):
-     return1Dfrom2D(arr2D):
-     singleJC(data1,data2):
-     JC(par1,par2,dataMCMC):
-     getRange(d,**kwargs):
-     axisTicks(rg0,rg1):
-     subID(Coord,Nx,Ny):
-     SimplifyGrid(xp,yp):
+ Transit Markov Chain Monte Carlo 
+ used by the APOSTLE program at the University of Washington, Seattle
 
 + binning.py
      MedianMeanOutlierRejection(indata, cutoff, choice):
@@ -166,4 +33,137 @@
      bound_vfraction_MTQ_2011(ModelParams):
      bound_bfraction_MTQ_2011(ModelParams):
      bound_bOVERaRs_MTQ_2011(ModelParams):
+
++ derived_MTQ_2011.py
+     returnDerivedLine_MTQ2011(ModelParams,istep,keyList0):
+     printDerived_MTQ_2011(STARTFILE,MCMCfile,DerivedFile):
+     filterMatchD(TransitTag,Tags,ModelParams):
+
++ func_example.py
+     quad(ModelParams,ObservedData):
+
++ iobinning.py
+     ReadData(file):
+     WriteLightCurveFile(OutFileName,file,IngressTime,EgressTime):
+     WriteNuisanceFile(OutFileName,file):
+     WriteLCNUSoutlierRejection(OutFileTag,file,IngressTime,EgressTime):
+
++ iomcmc.py
+     MakeModelParsContinue(par0,par1,ModelPars):
+     ReadStartParams(filename):
+     ReadSingleDataFile(file):
+     ReadDataFile(file):
+     ReadMultiList(listfile):
+     ReadColFloat(file,separator,comment):
+     checkFileExists(file):
+     ReadDetrendFile(file):
+     ReadBoundsFile(file):
+     ReadHeaderMCMC(line):
+     ReadMCMCline(line,header):
+     WriteLowestChisq(file,ModelParams,OutFileName,ShowOutput):
+     CheckContinue(file,ModelPars):
+     ReadMCMCheader(OutFile):
+     PrintModelParams(ModelParams,OutFile):
+     ReadBoundFile(file):
+
++ iopostmcmc.py
+     readStatHeaders(FileName):
+     readStatsFile(FileName):
+     readALLStats(**kwargs):
+     isNonParam(key):
+     getNparams(hdrkeys):
+     readMCMChdr(filename):
+     getPars(filename):
+     readMCMC(filename):
+     read1parMCMC(filename,parname):
+     cropMCMC(mcmcfile,outfile,cropperc):
+     makeStartFromExplore(ListOfChains,StablePerc,SampleParamFile,OutputParamFile):
+     printErrors(MCMCfile,BestfitFile,OutputFile):
+     readDTfile(file,NuisONOFF):
+     generateDT(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+     correctionFromMCMC(MCMCFile,ObservedData,ModelParams,NuisanceData,FuncName):
+     correctionFromDTfile(file,NuisONOFF):
+
++ mcmc.py
+     MakeMCMCheader(ModelParams):
+     printMCMCline(param_tagorder,ModelParams,istep,frac,acr,chi1,chi2):
+     chisq(fobs,sig,fmodel):
+     fn_randG(mu,sig):
+     fn_randU(lower,upper):
+     AdaptiveMultiplierCheck(ModelParams):
+     StepperFunction(ModelParams,frac):
+     mcmc_mh_adapt(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,OutFile,ShowOutput):
+     mcmc_mh_adapt_derived(Nsteps,FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,writeDtCoeffFlag,resumeFlag,printDerivedFlag,OutFile,DerivedFunctionName,DerivedFile,ShowOutput):
+     getDTCOEFFlines(DetrendData):
+     DetrendData(ObservedData,ModelData,NuisanceData,OutFile,writeDtCoeffFlag):
+     LinearLeastSq_coeff(A,B):
+     ApplyBounds(ModelParams,BoundParams):
+
++ misc.py
+     String2Bool(inStr):
+     String2IntFloat(inStr):
+     format(str, form):
+
++ MTQ_2010.py
+     MultiTransitQuick_circular_rprs_vm(ModelParams,ObservedData):
+     MultiTransitQuick_circular_depth_vm(ModelParams,ObservedData):
+     transitquick_circ_depth(t,p):
+     transitquick_circ_rprs(t,p):
+
++ MTQ_2011.py
+     MTQ_multidepth_tduration(ModelParams,ObservedData):
+     MTQ_getDerivedParams(D,tT,tG,u1,u2,Period):
+     MTQ_FilterParams(RefFilt,Tags,ModelParams):
+
++ myboundfunc.py
+
++ myderivedfunc.py
+
++ myfunc.py
+
++ myplotfunc.py
+
++ plotmcmc.py
+     rangeMidpoints(x):
+     return1Dfrom2D(arr2D):
+     singleJC(data1,data2):
+     JC(par1,par2,dataMCMC):
+     getRange(d,**kwargs):
+     axisTicks(rg0,rg1):
+     subID(Coord,Nx,Ny):
+     SimplifyGrid(xp,yp):
+
++ plotTransit.py
+     returnTsub(TSTAMP):
+     TForm(parName):
+     TransitParFormat(parlist):
+     TData(d,parName,par1):
+     PrepTransitData(DataFile,parlist,BestFitPar):
+     robust1sigma(x):
+     makeStatLabels(Stats,DataFile):
+
++ postmcmc.py
+     covcorStats(File, FileTag):
+     plotTrace(File1,File2, **keywords):
+     autocorMCMC(File, lowtol, jmax, OutStatFile, mkPlotsFlag, **keywords):
+
++ runminuit.py
+     RunMinuit(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams,tolnum,OutFile):
+     f_chisquared(FunctionName,ObservedData,ModelParams,NuisanceData,BoundParams):
+
++ tqessential.py
+     ekepler(m,e):
+     kepler(m,e):
+     ellke(k):
+     ellpic_bulirsch(n,k):
+     occultquad(z,u1,u2,p0):
+     newtraph6(x,a5,a4,a0):
+     tqsextic(x,a5,a4,a0):
+     computeRpRs(u1,u2,tT,tG,D):
+     LDC_v2u(v1,v2):
+     getFilterTags(StringArray):
+     getTags(ModelParams):
+     computePeriod(ModelParams):
+     TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
+     slopefitquick(x,y):
 

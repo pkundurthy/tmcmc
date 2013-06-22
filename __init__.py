@@ -14,5 +14,5 @@ import myboundfunc
 import myderivedfunc
 import myplotfunc
 
-import runminuit
+#import runminuit
 

@@ -3,6 +3,7 @@
 import numpy as np
 import os
 import sys
+from matplotlib import pylab as plt
 if sys.version_info[1] < 6:
     from tmcmc.misc import format
 
@@ -413,6 +414,7 @@ def TransitLC(timeIn,F0,inc,aRs,Period,RpRs,u1,u2,T0):
     
     # RpRs = tqe.MTQ_getRpRs(u1,u2,tT,tG,D)
     th = (2e0*np.pi/Period)*(timeIn-T0)
+    #z0 = aRs*np.sqrt( np.cos(inc)**2 + (th**2)*np.sin(inc)**2)
     z0 = aRs*np.sqrt(1e0 - (np.cos(th)*np.sin(inc))**2e0)
     out = occultquad(z0,u1,u2,RpRs)
     flux= out[:][0]*F0
